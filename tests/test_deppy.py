@@ -1,28 +1,5 @@
+import asyncio
 from deppy.deppy import Deppy
-
-
-def test_deppy_resolve_dependency():
-    deppy = Deppy()
-
-    @deppy.node
-    def test_node():
-        return "resolved"
-
-    assert deppy.resolve_dependency(test_node) == "resolved"
-
-
-def test_deppy_call_with_dependencies():
-    deppy = Deppy()
-
-    @deppy.node
-    def dependency():
-        return "dependency_value"
-
-    @deppy.node
-    def test_node(dep=dependency):
-        return f"result: {dep}"
-
-    assert deppy.call_with_dependencies(test_node.func) == "result: dependency_value"
 
 
 def test_deppy_register_node():
@@ -33,4 +10,21 @@ def test_deppy_register_node():
         return "node_registered"
 
     assert "test_node" in deppy.functions
-    assert test_node.execute() == "node_registered"
+    assert asyncio.run(deppy.execute()) == {"test_node": "node_registered"}
+
+
+async def test_deppy_execute_graph():
+    deppy = Deppy()
+
+    @deppy.node
+    def node1():
+        return "node1_result"
+
+    @deppy.node
+    def node2(dep):
+        return f"node2_result: {dep}"
+
+    node2.dep(node1)
+
+    result = await deppy.execute()
+    assert result == {"node1": "node1_result", "node2": "node2_result: node1_result"}
