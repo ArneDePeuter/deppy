@@ -1,0 +1,15 @@
+- threading
+- asyncio
+- multiprocessing
+- node rate limiting
+- retry policies
+- logging
+- testing
+- dot graph of setup
+- callback functions
+- filters / conditional edges
+- parameter extractors
+- configuration/ deppy language
+- graph validation (no loops)
+- metrics (execution time, cache hit rate, memory usage)
+- ignore result option
