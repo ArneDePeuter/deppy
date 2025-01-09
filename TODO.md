@@ -11,3 +11,5 @@
 - graph validation (no loops)
 - metrics (execution time, cache hit rate, memory usage)
 - ignore result option
+- scope joining? if even possible
+- different type of iter edge merge strategies

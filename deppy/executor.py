@@ -21,16 +21,20 @@ class ScopedDict(dict):
         return values
 
     def __getitem__(self, item):
-        if item in self:
-            return super().__getitem__(item)
-        if self.parent:
+        val = self.get(item)
+        if val is not None:
+            return val
+        if self.parent is not None:
             return self.parent[item]
         raise KeyError(item)
 
-    def dump(self):
-        cp = self.copy()
+    def dump(self, str_keys=False):
+        if str_keys:
+            cp = {str(k): v for k, v in self.items()}
+        else:
+            cp = self.copy()
         if len(self.children) > 0:
-            cp["children"] = [child.dump() for child in self.children]
+            cp["children"] = [child.dump(str_keys=str_keys) for child in self.children]
         return cp
 
     def __str__(self):
