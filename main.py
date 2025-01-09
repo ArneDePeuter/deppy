@@ -1,44 +1,33 @@
-from deppy import Deppy, Cache
+import asyncio
+from deppy import Deppy
 
-
+# Instantiate the dependency resolver
 deppy = Deppy()
 
-
-def a():
-    print("Computing a")
+@deppy.node
+async def a():
+    print("Executing Node A")
+    await asyncio.sleep(1)
     return 2
 
-
-def l1():
+@deppy.node
+def b():
+    print("Executing Node B")
     return [1, 2, 3]
 
+@deppy.node
+async def c(val1, val2):
+    print(f"Executing Node C with val1={val1} and val2={val2}")
+    await asyncio.sleep(0.5)
+    return val1 * val2
 
-def l2():
-    return [4, 5, 6]
+# Add loop variables
+c.val1(a)
+c.val2(b, loop=True)
 
+async def main():
+    print("Starting Execution")
+    results = await deppy.execute()
+    print("Execution Results:", results)
 
-def calculate(value1, value2, coeff):
-    return (value1 + value2) * coeff
-
-
-def multiply(value1, value2):
-    return value1 * value2
-
-
-# Build the graph
-a_node = deppy.node(a, cache=Cache(ttl=5))
-l1_node = deppy.node(l1)
-l2_node = deppy.node(l2)
-calculate_node = deppy.node(calculate)
-multiply_node = deppy.node(multiply)
-
-calculate_node.value1(l1_node, loop=True)
-calculate_node.value2(l2_node, loop=True)
-calculate_node.coeff(a_node)
-multiply_node.value1(calculate_node, loop=True)
-multiply_node.value2(a_node)
-
-# Execute the graph
-result = multiply_node.execute()
-print(result)
-
+asyncio.run(main())
