@@ -45,7 +45,7 @@ async def test_cache_integration_with_node():
 
     # First execution
     result = await deppy.execute()
-    assert result == {"cached_node": "cached_result"}
+    assert result == {cached_node: "cached_result"}
 
     # Validate cache hit
     cache_key = cached_node.create_cache_key({})

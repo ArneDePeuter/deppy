@@ -10,7 +10,7 @@ def test_deppy_register_node():
         return "node_registered"
 
     assert "test_node" in deppy.functions
-    assert asyncio.run(deppy.execute()) == {"test_node": "node_registered"}
+    assert asyncio.run(deppy.execute()) == {test_node: "node_registered"}
 
 
 async def test_deppy_execute_graph():
@@ -27,4 +27,34 @@ async def test_deppy_execute_graph():
     node2.dep(node1)
 
     result = await deppy.execute()
-    assert result == {"node1": "node1_result", "node2": "node2_result: node1_result"}
+    assert result == {node1: "node1_result", node2: "node2_result: node1_result"}
+
+
+async def test_unique_scope_upon_loop():
+    def l():
+        return [1, 2, 3]
+
+    def item1(data):
+        return data * 2
+
+    def item2(data):
+        return data * 3
+
+    def item3(data1, data2):
+        return data1, data2
+
+    deppy = Deppy()
+
+    l_node = deppy.node(l)
+    item1_node = deppy.node(item1)
+    item2_node = deppy.node(item2)
+    item3_node = deppy.node(item3)
+
+    item1_node.data(l_node, loop=True)
+    item2_node.data(item1_node)
+    item3_node.data1(item1_node)
+    item3_node.data2(item2_node)
+
+    result = await deppy.execute()
+
+    assert result(item3_node) == [(2, 6), (4, 12), (6, 18)]

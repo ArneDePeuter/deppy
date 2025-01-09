@@ -32,6 +32,9 @@ class Node:
     def __repr__(self):
         return f"<Node {self.func.__name__}>"
 
+    def __str__(self):
+        return self.func.__name__
+
     def __getattr__(self, name):
         """Allow dynamic setting of dependencies."""
         def setter(dependency, loop=False):
