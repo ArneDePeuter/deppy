@@ -48,13 +48,13 @@ class ScopedDict(dict):
     def __hash__(self):
         return id(self)
 
-    def gather_scoped_leaves(self, node, correct_scope=False):
+    def gather_scoped_leaves(self, node, in_scope=False):
         if len(self.children) == 0:
-            return [self] if correct_scope or node in self else []
+            return [self] if node in self and in_scope else []
 
         leaves = []
         for child in self.children:
-            leaves.extend(child.gather_scoped_leaves(node, correct_scope=node in self or correct_scope))
+            leaves.extend(child.gather_scoped_leaves(node, in_scope=True))
         return leaves
 
 
@@ -109,6 +109,7 @@ class Executor:
 
         if node.loop_vars:
             child = results.birth()
+            child["scope_name"] = str(node)
             for task in node_tasks:
                 result = task.result()
                 child.birth()[node] = result
