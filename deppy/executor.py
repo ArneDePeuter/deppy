@@ -1,7 +1,61 @@
 import asyncio
 from itertools import product
+from typing import Optional
 
 from .node import Node
+
+
+class ScopedDict(dict):
+    def __init__(self, parent: Optional[dict] = None):
+        self.parent = parent
+        self.children = []
+        super().__init__()
+
+    def __call__(self, key):
+        values = []
+        val = self.get(key)
+        if val:
+            values.append(val)
+        for child in self.children:
+            values.extend(child(key))
+        return values
+
+    def __getitem__(self, item):
+        if item in self:
+            return super().__getitem__(item)
+        if self.parent:
+            return self.parent[item]
+        raise KeyError(item)
+
+    def dump(self):
+        cp = self.copy()
+        if len(self.children) > 0:
+            cp["children"] = [child.dump() for child in self.children]
+        return cp
+
+    def __str__(self):
+        return str(self.dump())
+
+    def birth(self):
+        child = ScopedDict(self)
+        self.children.append(child)
+        return child
+
+    def __hash__(self):
+        return id(self)
+
+    def gather_scoped_leaves(self, node, correct_scope=False):
+        if len(self.children) == 0:
+            return [self] if correct_scope or node in self else []
+
+        leaves = []
+        for child in self.children:
+            leaves.extend(child.gather_scoped_leaves(node, correct_scope=node in self or correct_scope))
+        return leaves
+
+
+class MultiResult(list):
+    pass
 
 
 class Executor:
@@ -33,37 +87,62 @@ class Executor:
 
         return layers
 
-    async def execute(self):
+    async def execute_node(self, node, results: ScopedDict, func_task_cache: dict):
+        args_list = await self._resolve_args(node, results)
+        node_tasks = []
+
+        for single_args in args_list:
+            func_task_key = (node.func.__name__, node.create_cache_key(single_args))
+            existing_task = func_task_cache.get(func_task_key)
+            if existing_task is None:
+                task = asyncio.create_task(node(**single_args))
+                func_task_cache[func_task_key] = task
+                node_tasks.append(task)
+            else:
+                node_tasks.append(existing_task)
+
+        await asyncio.gather(*node_tasks)
+
+        if node.loop_vars:
+            child = results.birth()
+            for task in node_tasks:
+                result = task.result()
+                child.birth()[node] = result
+        else:
+            results[node] = node_tasks[0].result()
+
+    async def execute_layer(self, layer, root: ScopedDict):
+        tasks = []
+        func_task_cache = {}
+
+        for node in layer:
+            # setup proper result scopes list
+            dependencies = [dep for dep in node.dependencies.values() if isinstance(dep, Node)]
+            scopes = set()
+            for dep in dependencies:
+                scopes |= set(root.gather_scoped_leaves(dep))
+
+            if len(scopes) == 0:
+                tasks.extend([self.execute_node(node, root, func_task_cache)])
+                continue
+
+            parents = set()
+            for scope in scopes:
+                parents.add(scope.parent)
+
+            assert len(parents) < 2, f"Joining scopes not implemented, detected in {node}"
+            tasks.extend([self.execute_node(node, scope, func_task_cache) for scope in scopes])
+
+        await asyncio.gather(*tasks)
+
+    async def execute(self) -> ScopedDict:
         """Execute the graph layer by layer."""
-        results = {}
+        root = ScopedDict()
 
         for layer in self.layers:
-            tasks = {}
-            func_task_cache = {}
+            await self.execute_layer(layer, root)
 
-            for node in layer:
-                args_list = await self._resolve_args(node, results)
-
-                node_tasks = []
-
-                for single_args in args_list:
-                    func_task_key = (node.func.__name__, node.create_cache_key(single_args))
-                    existing_task = func_task_cache.get(func_task_key)
-                    if existing_task is None:
-                        task = asyncio.create_task(node(**single_args))
-                        func_task_cache[func_task_key] = task
-                        node_tasks.append(task)
-                    else:
-                        node_tasks.append(existing_task)
-
-                tasks[node] = node_tasks
-
-            await asyncio.gather(*[task for tasks in tasks.values() for task in tasks])
-
-            for node, node_tasks in tasks.items():
-                results[node] = [task.result() for task in node_tasks] if node.loop_vars else node_tasks[0].result()
-
-        return {node.func.__name__: results[node] for node in self.nodes}
+        return root
 
     @staticmethod
     async def _resolve_args(node, results):

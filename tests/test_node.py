@@ -9,7 +9,7 @@ async def test_node_execution_without_dependencies():
         return "result"
 
     result = await deppy.execute()
-    assert result == {"test_node": "result"}
+    assert result == {test_node: "result"}
 
 
 async def test_node_with_dependencies():
@@ -26,7 +26,7 @@ async def test_node_with_dependencies():
     test_node.dep(dependency)
 
     result = await deppy.execute()
-    assert result == {"dependency": "dependency_result", "test_node": "node_result: dependency_result"}
+    assert result == {dependency: "dependency_result", test_node: "node_result: dependency_result"}
 
 
 async def test_node_with_loop_variables():
@@ -48,8 +48,8 @@ async def test_node_with_loop_variables():
     test_node.val2(loop2, loop=True)
 
     result = await deppy.execute()
-    assert result == {
-        "loop1": [1, 2],
-        "loop2": ["a", "b"],
-        "test_node": ["1-a", "1-b", "2-a", "2-b"],
-    }
+    assert result(test_node) == ["1-a", "1-b", "2-a", "2-b"]
+    assert result(loop1) == [[1, 2]]
+    assert result(loop2) == [["a", "b"]]
+
+    assert len(result.children[0].children) == 4

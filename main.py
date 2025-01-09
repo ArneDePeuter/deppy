@@ -1,7 +1,6 @@
 import asyncio
-from deppy.deppy import Deppy
-from deppy.cache import Cache
 import json
+from deppy import Deppy, Cache
 
 
 async def fetch_data():
@@ -10,8 +9,7 @@ async def fetch_data():
     return [1, 2, 3]
 
 
-async def process_data(data):
-    await asyncio.sleep(1)
+def process_data(data):
     return [x * 2 for x in data]
 
 
