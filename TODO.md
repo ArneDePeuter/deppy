@@ -1,7 +1,5 @@
-- threading
-- asyncio
-- multiprocessing
 - node rate limiting
+- node max exec time
 - retry policies
 - logging
 - testing
