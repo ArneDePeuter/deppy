@@ -26,3 +26,18 @@ class Deppy:
 
     def executor(self):
         return Executor(list(self.functions.values()))
+
+    def dot(self, filename: str="graph.dot"):
+        """Generate a graphviz dot file."""
+        import pydot
+        graph = pydot.Dot("my_graph", graph_type="digraph")
+        for node in self.functions.values():
+            graph.add_node(pydot.Node(str(node)))
+            for name, dep in node.dependencies.items():
+                label = f"return->{name}"
+                if (name, dep) in node.loop_vars:
+                    label = label.replace("return", "loop[return]")
+                    graph.add_edge(pydot.Edge(str(dep), str(node), label=label, color="red"))
+                else:
+                    graph.add_edge(pydot.Edge(str(dep), str(node), label=label))
+        graph.write(filename)
