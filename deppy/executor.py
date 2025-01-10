@@ -58,10 +58,6 @@ class ScopedDict(dict):
         return leaves
 
 
-class MultiResult(list):
-    pass
-
-
 class Executor:
     """Executes a dependency graph in layers."""
 
