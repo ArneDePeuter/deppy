@@ -48,15 +48,6 @@ class ScopedDict(dict):
     def __hash__(self):
         return id(self)
 
-    def gather_scoped_leaves(self, node, in_scope=False):
-        if len(self.children) == 0:
-            return [self] if node in self and in_scope else []
-
-        leaves = []
-        for child in self.children:
-            leaves.extend(child.gather_scoped_leaves(node, in_scope=True))
-        return leaves
-
 
 class Executor:
     """Executes a dependency graph in layers."""
@@ -103,45 +94,57 @@ class Executor:
 
         await asyncio.gather(*node_tasks)
 
-        if node.loop_vars:
-            child = results.birth()
-            child["scope_name"] = str(node)
-            for task in node_tasks:
-                result = task.result()
-                child.birth()[node] = result
-        else:
-            results[node] = node_tasks[0].result()
+        birthed_children = set()
 
-    async def execute_layer(self, layer, root: ScopedDict):
+        if not node.loop_vars:
+            results[node] = node_tasks[0].result()
+            return birthed_children
+
+        child = results.birth()
+        child["scope_name"] = str(node)
+        for task in node_tasks:
+            result = task.result()
+            new_child = child.birth()
+            new_child[node] = result
+            birthed_children.add(new_child)
+        return birthed_children
+
+    async def execute_layer(self, layer, parent_children: dict[Node, set[ScopedDict]], root: ScopedDict):
         tasks = []
+        task_map = {}
         func_task_cache = {}
 
         for node in layer:
-            # setup proper result scopes list
+            node_tasks = []
+
             dependencies = [dep for dep in node.dependencies.values() if isinstance(dep, Node)]
-            scopes = set()
-            for dep in dependencies:
-                scopes |= set(root.gather_scoped_leaves(dep))
+            relevant_scopes = {dep: parent_children[dep] for dep in dependencies if dep in parent_children}
+            assert len(relevant_scopes) < 2, f"Joining scopes not implemented, detected in {node}"
 
-            if len(scopes) == 0:
-                tasks.extend([self.execute_node(node, root, func_task_cache)])
-                continue
+            scopes = next(iter(relevant_scopes.values())) if len(relevant_scopes) > 0 else [root]
 
-            parents = set()
-            for scope in scopes:
-                parents.add(scope.parent)
-
-            assert len(parents) < 2, f"Joining scopes not implemented, detected in {node}"
-            tasks.extend([self.execute_node(node, scope, func_task_cache) for scope in scopes])
+            new_tasks = [asyncio.create_task(self.execute_node(node, scope, func_task_cache)) for scope in scopes]
+            tasks.extend(new_tasks)
+            node_tasks.extend(new_tasks)
+            task_map[node] = node_tasks
 
         await asyncio.gather(*tasks)
+
+        for node, node_tasks in task_map.items():
+            new_children = set()
+            for task in node_tasks:
+                new_children |= task.result()
+            if len(new_children) > 0:
+                parent_children[node] = new_children
+        return parent_children
 
     async def execute(self) -> ScopedDict:
         """Execute the graph layer by layer."""
         root = ScopedDict()
+        parent_children = {}
 
         for layer in self.layers:
-            await self.execute_layer(layer, root)
+            parent_children = await self.execute_layer(layer, parent_children, root)
 
         return root
 
