@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, List
 
 from .ignore_result import IgnoreResult
 
+
 class Scope(dict):
     def __init__(self, parent: Optional[dict] = None) -> None:
         self.parent = parent

@@ -10,6 +10,7 @@ class Deppy:
     def __init__(self) -> None:
         self.graph = MultiDiGraph()
         self.executor = Executor(self.graph)
+        self.const_counter = 0
 
     def node(self, func: Optional[Callable] = None, **kwargs) -> Union[Node, Callable[[Callable], Node]]:
         def decorator(f):
@@ -34,3 +35,8 @@ class Deppy:
     def dot(self, filename: str) -> None:
         from networkx.drawing.nx_pydot import write_dot
         write_dot(self.graph, filename)
+
+    def const(self, value: Any) -> Node:
+        node = self.node(lambda: value, name="CONST" + str(self.const_counter))
+        self.const_counter += 1
+        return node

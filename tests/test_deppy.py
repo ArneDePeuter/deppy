@@ -252,3 +252,19 @@ async def test_ignore_result():
     all_filter_invalid_results = result(filter_node, ignored_results=True)
     assert len(all_filter_invalid_results) == 1
     assert all_filter_invalid_results[0].data == 3
+
+
+async def test_constant():
+    deppy = Deppy()
+
+    async def add(val1, val2):
+        return val1 + val2
+
+    l1 = deppy.const([1, 2, 3])
+    l2 = deppy.const([1, 2, 3])
+    add_node = deppy.node(add, loop_strategy=zip)
+
+    add_node.val1(l1, loop=True).val2(l2, loop=True)
+
+    result = await deppy.execute()
+    assert result(add_node) == [2, 4, 6]
