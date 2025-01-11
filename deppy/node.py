@@ -14,7 +14,8 @@ class Node:
             loop_strategy: Optional[LoopStrategy] = product,
             to_thread: Optional[bool] = False,
             team_race: Optional[bool] = True,
-            name: Optional[str] = None
+            name: Optional[str] = None,
+            secret: Optional[bool] = False
     ):
         self.func = func
         self.deppy = deppy
@@ -23,6 +24,7 @@ class Node:
         self.to_thread = to_thread
         self.team_race = team_race
         self.name = name or func.__name__
+        self.secret = secret
 
     async def execute(self, **kwargs):
         if asyncio.iscoroutinefunction(self.func):
@@ -41,7 +43,7 @@ class Node:
         return self.name
 
     def __getattr__(self, name: str) -> Callable[[Any], 'Node']:
-        def setter(dependency, loop: Optional[bool] = False, extractor: Optional[Callable[[Any], Any]] = None):
+        def setter(dependency: Node, loop: Optional[bool] = False, extractor: Optional[Callable[[Any], Any]] = None):
             self.deppy.edge(dependency, self, name, loop=loop, extractor=extractor)
             return self
         return setter
