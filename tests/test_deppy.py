@@ -1,6 +1,5 @@
 import asyncio
 from deppy import Deppy
-from deppy.call_strategies import Cache
 from itertools import product
 
 
@@ -129,7 +128,7 @@ async def test_extractor():
 
 async def test_solo_race():
     async def list1():
-        return [1, 4]
+        return [1, 2]
 
     async def process(data):
         await asyncio.sleep(data)
@@ -153,20 +152,76 @@ async def test_solo_race():
 
     result = await deppy.execute()
 
-    assert result(process_again_node) == [6, 24]
+    assert result(process_again_node) == [6, 12]
 
     diff = entry_times[1] - entry_times[0]
     # branch diff is greater than 3 meaning one process started earlier than the other
-    assert abs(diff - 3) < 0.1
+    assert abs(diff - 1) < 0.1
 
     process_node.team_race = True
 
     entry_times.clear()
     result = await deppy.execute()
 
-    assert result(process_again_node) == [6, 24]
+    assert result(process_again_node) == [6, 12]
 
     diff = entry_times[1] - entry_times[0]
     # processes started at the same time
     assert diff < 0.1
 
+
+from deppy.deppy import Deppy
+
+
+async def test_node_execution_without_dependencies():
+    deppy = Deppy()
+
+    @deppy.node
+    async def test_node():
+        return "result"
+
+    result = await deppy.execute()
+    assert result == {test_node: "result"}
+
+
+async def test_node_with_dependencies():
+    deppy = Deppy()
+
+    @deppy.node
+    async def dependency():
+        return "dependency_result"
+
+    @deppy.node
+    async def test_node(dep):
+        return f"node_result: {dep}"
+
+    test_node.dep(dependency)
+
+    result = await deppy.execute()
+    assert result == {dependency: "dependency_result", test_node: "node_result: dependency_result"}
+
+
+async def test_node_with_loop_variables():
+    deppy = Deppy()
+
+    @deppy.node
+    async def loop1():
+        return [1, 2]
+
+    @deppy.node
+    async def loop2():
+        return ["a", "b"]
+
+    @deppy.node
+    async def test_node(val1, val2):
+        return f"{val1}-{val2}"
+
+    test_node.val1(loop1, loop=True)
+    test_node.val2(loop2, loop=True)
+
+    result = await deppy.execute()
+    assert result(test_node) == ["1-a", "1-b", "2-a", "2-b"]
+    assert result(loop1) == [[1, 2]]
+    assert result(loop2) == [["a", "b"]]
+
+    assert len(result.children[0].children) == 4
