@@ -1,6 +1,6 @@
 from networkx import MultiDiGraph, is_directed_acyclic_graph
 from itertools import product
-from typing import Optional, Callable, Union
+from typing import Optional, Callable, Union, Sequence
 
 from .node import Node, LoopStrategy
 from .executor import Executor
@@ -31,8 +31,8 @@ class Deppy:
         self.graph.add_edge(node1, node2, key=in_kwarg_name, loop=loop)
         assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
 
-    async def execute(self) -> Scope:
-        return await self.executor.execute()
+    async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
+        return await self.executor.execute(*target_nodes)
 
     def dot(self, filename: str) -> None:
         from networkx.drawing.nx_pydot import write_dot
