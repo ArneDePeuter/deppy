@@ -1,6 +1,3 @@
 - logging
 - testing
-- callback functions
-- filters / conditional edges
 - configuration/ deppy language
-- ignore result option
