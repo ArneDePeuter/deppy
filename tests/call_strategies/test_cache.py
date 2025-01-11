@@ -1,5 +1,5 @@
 import time
-from deppy.cache import Cache
+from deppy.call_strategies.cache import Cache
 from deppy.deppy import Deppy
 
 
@@ -36,19 +36,17 @@ def test_cache_max_uses():
 
 
 async def test_cache_integration_with_node():
-    deppy = Deppy()
     cache = Cache(ttl=2)
 
-    @deppy.node(cache=cache)
-    async def cached_node():
+    async def function():
         return "cached_result"
 
     # First execution
-    result = await deppy.execute()
-    assert result == {cached_node: "cached_result"}
+    result = await cache(function)
+    assert result == "cached_result"
 
     # Validate cache hit
-    cache_key = cached_node.create_cache_key({})
+    cache_key = cache.create_cache_key({})
     cached_result, hit = cache.get(cache_key)
     assert hit is True
     assert cached_result == "cached_result"

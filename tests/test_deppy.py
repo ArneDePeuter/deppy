@@ -1,5 +1,6 @@
 import asyncio
 from deppy import Deppy
+from deppy.call_strategies import Cache
 from itertools import product
 
 
@@ -156,7 +157,7 @@ async def test_solo_race():
 
     diff = entry_times[1] - entry_times[0]
     # branch diff is greater than 3 meaning one process started earlier than the other
-    assert diff >= 3
+    assert abs(diff - 3) < 0.1
 
     process_node.team_race = True
 
@@ -168,3 +169,21 @@ async def test_solo_race():
     diff = entry_times[1] - entry_times[0]
     # processes started at the same time
     assert diff < 0.1
+
+
+async def test_call_strategy():
+    call_amount = 0
+
+    def function():
+        nonlocal call_amount
+        call_amount += 1
+        return ""
+
+    deppy = Deppy()
+
+    node = deppy.node(function, call_strategy=Cache())
+
+    await deppy.execute()
+    await deppy.execute()
+
+    assert call_amount == 1
