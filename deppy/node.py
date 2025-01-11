@@ -1,12 +1,12 @@
 import asyncio
 from itertools import product
-from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional
-
-from deppy.call_strategies import CallStrategy
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, List
 
 
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
 AnyFunc = Union[Callable[..., Any], Callable[..., Awaitable[Any]]]
+
+WrapFn = Callable[[AnyFunc], AnyFunc]
 
 
 class Node:
@@ -15,7 +15,7 @@ class Node:
             func: AnyFunc,
             deppy: 'Deppy',
             loop_strategy: Optional[LoopStrategy] = product,
-            call_strategy: Optional[CallStrategy] = None,
+            call_strategies: Optional[List[WrapFn]] = None,
             to_thread: Optional[bool] = False,
             team_race: Optional[bool] = True,
             name: Optional[str] = None
@@ -23,7 +23,8 @@ class Node:
         self.func = func
         self.deppy = deppy
         self.loop_vars = []
-        self.call_strategy = call_strategy
+        for strategy in call_strategies or []:
+            self.func = strategy(self.func)
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
         self.team_race = team_race
@@ -37,7 +38,7 @@ class Node:
         return self.func(**kwargs)
 
     async def __call__(self, **kwargs):
-        return await self.call_strategy(self.execute, **kwargs) if self.call_strategy is not None else await self.execute(**kwargs)
+        return await self.execute(**kwargs)
 
     def __repr__(self):
         return f"<Node {self.name}>"
