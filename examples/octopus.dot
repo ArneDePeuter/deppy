@@ -1,0 +1,23 @@
+digraph {
+request_auth;
+"software house uuid";
+user;
+password;
+request_dossiers;
+dossier_id;
+request_dossiers_token;
+"locale id";
+request_bookyears;
+"request_dossiers->dossier_id" [shape=circle, label=dossier];
+request_auth -> request_dossiers [key=token, loop=False, extractor=<function octopus.<locals>.<lambda> at 0x1081219e0>];
+request_auth -> request_dossiers_token [key=token, loop=False, extractor=<function octopus.<locals>.<lambda> at 0x108121c60>];
+"software house uuid" -> request_auth [key="software_house_uuid", loop=False, extractor=None];
+user -> request_auth [key=user, loop=False, extractor=None];
+password -> request_auth [key=password, loop=False, extractor=None];
+request_dossiers -> "request_dossiers->dossier_id" [key=dossier];
+dossier_id -> request_dossiers_token [key="dossier_id", loop=False, extractor=None];
+dossier_id -> request_bookyears [key="dossier_id", loop=False, extractor=None];
+request_dossiers_token -> request_bookyears [key="dossier_token", loop=False, extractor=<function octopus.<locals>.<lambda> at 0x108122020>];
+"locale id" -> request_dossiers_token [key="locale_id", loop=False, extractor=None];
+"request_dossiers->dossier_id" -> dossier_id [key=dossier];
+}

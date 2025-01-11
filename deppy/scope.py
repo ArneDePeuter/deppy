@@ -1,9 +1,12 @@
 from typing import Optional, Dict, Any, List
 
 from .ignore_result import IgnoreResult
+from .node import Node
 
 
 class Scope(dict):
+    not_found = object()
+
     def __init__(self, parent: Optional[dict] = None) -> None:
         self.parent = parent
         self.children = []
@@ -24,20 +27,21 @@ class Scope(dict):
         return values
 
     def __getitem__(self, item) -> Any:
-        val = self.get(item)
-        if val is not None:
+        val = self.get(item, self.not_found)
+        if val is not self.not_found:
             return val
         if self.parent is not None:
             return self.parent[item]
         raise KeyError(item)
 
-    def dump(self, str_keys=False) -> Dict[str, Any]:
-        if str_keys:
-            cp = {str(k): v for k, v in self.items()}
-        else:
-            cp = self.copy()
+    def dump(self, ignore_secret: Optional[bool] = False) -> Dict[str, Any]:
+        cp: Dict[str, Any] = {}
+        for key, value in self.items():
+            if isinstance(key, Node) and key.secret and not ignore_secret:
+                value = "***"
+            cp[str(key)] = value
         if len(self.children) > 0:
-            cp["children"] = [child.dump(str_keys=str_keys) for child in self.children]
+            cp["children"] = [child.dump(ignore_secret) for child in self.children]
         return cp
 
     def __str__(self) -> str:
@@ -51,7 +55,7 @@ class Scope(dict):
     def __hash__(self) -> int:
         return id(self)
 
-    def dot(self, filename: str) -> None:
+    def dot(self, filename: str, ignore_secret: Optional[bool] = False) -> None:
         import pydot
 
         graph = pydot.Dot(graph_type='digraph')
@@ -59,6 +63,8 @@ class Scope(dict):
         def add_node(scope):
             label = ""
             for key, value in scope.items():
+                if isinstance(key, Node) and key.secret and not ignore_secret:
+                    value = "***"
                 label += f"{key}: {value}\n"
             node = pydot.Node(id(scope), label=label)
             graph.add_node(node)

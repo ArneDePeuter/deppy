@@ -34,9 +34,21 @@ class Deppy:
 
     def dot(self, filename: str) -> None:
         from networkx.drawing.nx_pydot import write_dot
-        write_dot(self.graph, filename)
+        dot_graph = self.graph.copy()
+        for node in self.graph.nodes:
+            for u, v, k, d in self.graph.edges(node, keys=True, data=True):
+                if d["loop"]:
+                    dot_graph.add_node(f"{u}->{v}", shape="circle", label=k)
+                    dot_graph.add_edge(u, f"{u}->{v}", key=k)
+                    dot_graph.add_edge(f"{u}->{v}", v, key=k)
+                    dot_graph.remove_edge(u, v, k)
+        write_dot(dot_graph, filename)
 
-    def const(self, value: Any) -> Node:
-        node = self.node(lambda: value, name="CONST" + str(self.const_counter))
+    def const(self, value: Any, secret: Optional[bool] = False, name: Optional[str] = None) -> Node:
+        name = name or "CONST" + str(self.const_counter)
+        node = self.node(lambda: value, name=name, secret=secret)
         self.const_counter += 1
         return node
+
+    def secret(self, value: Any, name: Optional[str] = None) -> Node:
+        return self.const(value, secret=True, name=name)
