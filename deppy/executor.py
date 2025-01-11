@@ -4,6 +4,7 @@ from networkx import MultiDiGraph
 
 from .node import Node
 from .scope import Scope
+from .ignore_result import IgnoreResult
 
 
 class Executor:
@@ -16,11 +17,13 @@ class Executor:
         scopes = set()
         if not node.loop_vars:
             scope[node] = result
-            scopes.add(scope)
+            if not isinstance(result, IgnoreResult):
+                scopes.add(scope)
         else:
             child = scope.birth()
             child[node] = result
-            scopes.add(child)
+            if not isinstance(result, IgnoreResult):
+                scopes.add(child)
 
         successors = self.flow_graph.successors(node)
         if node in work_graph:
@@ -44,14 +47,16 @@ class Executor:
         scopes = set()
         if not node.loop_vars:
             scope[node] = results[0]
-            scopes.add(scope)
+            if not isinstance(results[0], IgnoreResult):
+                scopes.add(scope)
         else:
             scope = scope.birth()
             scope["scope_name"] = str(node)
             for result in results:
                 child = scope.birth()
                 child[node] = result
-                scopes.add(child)
+                if not isinstance(result, IgnoreResult):
+                    scopes.add(child)
 
         successors = self.flow_graph.successors(node)
         if node in work_graph:

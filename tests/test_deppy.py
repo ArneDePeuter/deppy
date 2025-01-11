@@ -1,5 +1,5 @@
 import asyncio
-from deppy import Deppy
+from deppy import Deppy, IgnoreResult
 from itertools import product
 
 
@@ -222,3 +222,33 @@ async def test_node_with_loop_variables():
     assert result(loop2) == [["a", "b"]]
 
     assert len(result.children[0].children) == 4
+
+
+async def test_ignore_result():
+    deppy = Deppy()
+
+    async def l():
+        return [2, 4, 3]
+
+    def filter_uneven(data):
+        return IgnoreResult(data=data) if data % 2 != 0 else data
+
+    def increment(data):
+        return data + 1
+
+    l_node = deppy.node(l)
+    filter_node = deppy.node(filter_uneven)
+    increment_node = deppy.node(increment)
+
+    filter_node.data(l_node, loop=True)
+    increment_node.data(filter_node)
+
+    result = await deppy.execute()
+    assert result(increment_node) == [3, 5]
+    all_filter_results = result(filter_node)
+    assert len(all_filter_results) == 3
+    all_filter_valid_results = result(filter_node, ignored_results=False)
+    assert len(all_filter_valid_results) == 2
+    all_filter_invalid_results = result(filter_node, ignored_results=True)
+    assert len(all_filter_invalid_results) == 1
+    assert all_filter_invalid_results[0].data == 3

@@ -8,4 +8,5 @@
 - dot graph of DAG and of result
 - result query
 - execution selection
+- ignore result return value
 - 

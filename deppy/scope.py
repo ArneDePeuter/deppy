@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Any, List
 
+from .ignore_result import IgnoreResult
 
 class Scope(dict):
     def __init__(self, parent: Optional[dict] = None) -> None:
@@ -7,13 +8,18 @@ class Scope(dict):
         self.children = []
         super().__init__()
 
-    def __call__(self, key) -> List[Any]:
+    def __call__(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
         values = []
         val = self.get(key)
         if val:
-            values.append(val)
+            if ignored_results is None:
+                values.append(val)
+            elif ignored_results and isinstance(val, IgnoreResult):
+                values.append(val)
+            elif not ignored_results and not isinstance(val, IgnoreResult):
+                values.append(val)
         for child in self.children:
-            values.extend(child(key))
+            values.extend(child(key, ignored_results=ignored_results))
         return values
 
     def __getitem__(self, item) -> Any:
