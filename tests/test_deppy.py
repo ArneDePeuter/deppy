@@ -9,7 +9,7 @@ def test_deppy_register_node():
     def test_node():
         return "node_registered"
 
-    assert "test_node" in deppy.functions
+    assert test_node in deppy.graph
     assert asyncio.run(deppy.execute()) == {test_node: "node_registered"}
 
 

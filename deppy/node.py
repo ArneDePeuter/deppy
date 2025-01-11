@@ -38,13 +38,13 @@ class Node:
     def __getattr__(self, name):
         """Allow dynamic setting of dependencies."""
         def setter(dependency, loop=False):
-            if loop:
-                self.loop_vars.append((name, dependency))
+            self.deppy.edge(dependency, self, name, loop=loop)
             self.dependencies[name] = dependency
-            return self  # Allow chaining
+            return self
         return setter
 
-    def create_cache_key(self, args):
+    @staticmethod
+    def create_cache_key(args):
         """Create a robust and unique cache key."""
         try:
             return json.dumps(args, sort_keys=True, default=str)
