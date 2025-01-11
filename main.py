@@ -24,6 +24,8 @@ calculate_item_node = deppy.node(calculate_item)
 process_item_node.item(fetch_data_node, loop=True)
 calculate_item_node.item(process_item_node, loop=True)
 
+deppy.dot("graph.dot")
+
 
 async def main():
     print("Executing dependency graph...")

@@ -32,3 +32,8 @@ class Deppy:
         """Execute the dependency graph."""
         return await self.executor.execute()
 
+    def dot(self, filename: str):
+        """Save the dependency graph as a DOT file."""
+        from networkx.drawing.nx_pydot import write_dot
+        write_dot(self.graph, filename)
+
