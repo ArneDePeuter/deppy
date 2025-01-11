@@ -87,21 +87,23 @@ class Executor:
         await asyncio.gather(*[self.execute_node(node, self.root) for node in qualified_nodes])
         return self.root
 
-    @staticmethod
-    async def _resolve_args(node: Node, scope: Scope) -> List[Dict[str, Any]]:
+    async def _resolve_args(self, node: Node, scope: Scope) -> List[Dict[str, Any]]:
         resolved_args = {}
 
-        for name, dep in node.dependencies.items():
-            if isinstance(dep, Node):
-                resolved_args[name] = scope[dep]
-            elif callable(dep):
-                resolved_args[name] = await asyncio.to_thread(dep)
-            else:
-                resolved_args[name] = dep
+        for pred in self.graph.predecessors(node):
+            pred_data = scope[pred]
+            for key, edge_data in self.graph.get_edge_data(pred, node).items():
+                if (extractor := edge_data.get("extractor")) is not None:
+                    resolved_args[key] = extractor(pred_data)
+                else:
+                    resolved_args[key] = pred_data
 
         if node.loop_vars:
-            loop_keys = [name for name, _ in node.loop_vars]
-            loop_values = [scope[dep] if isinstance(dep, Node) else dep for _, dep in node.loop_vars]
-            return [{**resolved_args, **dict(zip(loop_keys, combination))} for combination in node.loop_strategy(*loop_values)]
+            loop_keys = [key for key, _ in node.loop_vars]
+            loop_values = (resolved_args[key] for key in loop_keys)
+            return [
+                {**resolved_args, **dict(zip(loop_keys, combination))}
+                for combination in node.loop_strategy(*loop_values)
+            ]
 
         return [resolved_args]

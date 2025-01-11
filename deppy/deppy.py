@@ -1,6 +1,6 @@
 from networkx import MultiDiGraph, is_directed_acyclic_graph
 from itertools import product
-from typing import Optional, Callable, Union, Sequence
+from typing import Optional, Callable, Union, Sequence, Any
 
 from .node import Node, LoopStrategy
 from .executor import Executor
@@ -25,10 +25,10 @@ class Deppy:
             return decorator(func)
         return decorator
 
-    def edge(self, node1: Node, node2: Node, in_kwarg_name: str, loop: Optional[bool] = False) -> None:
+    def edge(self, node1: Node, node2: Node, in_kwarg_name: str, loop: Optional[bool] = False, extractor: Optional[Callable[[Any], Any]] = None) -> None:
         if loop:
             node2.loop_vars.append((in_kwarg_name, node1))
-        self.graph.add_edge(node1, node2, key=in_kwarg_name, loop=loop)
+        self.graph.add_edge(node1, node2, key=in_kwarg_name, loop=loop, extractor=extractor)
         assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
 
     async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
