@@ -22,12 +22,12 @@ class Executor:
             scope[node] = results[0]
             scopes.add(scope)
         else:
-            child = scope.birth()
-            child["scope_name"] = str(node)
+            scope = scope.birth()
+            scope["scope_name"] = str(node)
             for result in results:
-                new_child = child.birth()
-                new_child[node] = result
-                scopes.add(new_child)
+                child = scope.birth()
+                child[node] = result
+                scopes.add(child)
 
         successors = self.flow_graph.successors(node)
         if node in self.work_graph:
