@@ -1,20 +1,37 @@
 import time
+import json
+from typing import Dict, Any
+
+from .call_strategy import CallStrategy
 
 
-class Cache:
-    """Cache class to handle TTL and max_uses."""
-
+class Cache(CallStrategy, dict):
     def __init__(self, max_uses=None, ttl=None):
         assert max_uses is None or max_uses > 0, "max_uses must be a positive integer or None"
         self.max_uses = max_uses
         self.ttl = ttl
-        self.cache = {}
         self.usage_count = {} if max_uses else None
         self.ttls = {} if ttl else None
+        super().__init__()
+
+    async def __call__(self, func, **kwargs):
+        cache_key = self.create_cache_key(kwargs)
+        value, hit = self.get(cache_key)
+        if hit:
+            return value
+        res = await func(**kwargs)
+        self.set(cache_key, res)
+        return res
+
+    @staticmethod
+    def create_cache_key(args: Dict[str, Any]) -> str:
+        try:
+            return json.dumps(args, sort_keys=True, default=str)
+        except TypeError:
+            return str(sorted(args.items()))
 
     def get(self, key):
-        """Retrieve a value from the cache if valid."""
-        if key not in self.cache:
+        if key not in self:
             return None, False
 
         # Check TTL
@@ -31,11 +48,11 @@ class Cache:
                 self.invalidate(key)
                 return None, False
 
-        return self.cache[key], True
+        return self[key], True
 
     def set(self, key, value):
         """Store a value in the cache."""
-        self.cache[key] = value
+        self[key] = value
         if self.usage_count is not None:
             self.usage_count[key] = 0
         if self.ttls is not None:
@@ -43,8 +60,8 @@ class Cache:
 
     def invalidate(self, key):
         """Invalidate a cache entry."""
-        if key in self.cache:
-            del self.cache[key]
+        if key in self:
+            del self[key]
         if self.usage_count and key in self.usage_count:
             del self.usage_count[key]
         if self.ttls and key in self.ttls:

@@ -1,9 +1,8 @@
-import json
 import asyncio
 from itertools import product
-from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, Dict
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional
 
-from .cache import Cache
+from deppy.call_strategies import CallStrategy
 
 
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
@@ -16,7 +15,7 @@ class Node:
             func: AnyFunc,
             deppy: 'Deppy',
             loop_strategy: Optional[LoopStrategy] = product,
-            cache: Optional[Cache] = None,
+            call_strategy: Optional[CallStrategy] = None,
             to_thread: Optional[bool] = False,
             team_race: Optional[bool] = True,
             name: Optional[str] = None
@@ -24,30 +23,21 @@ class Node:
         self.func = func
         self.deppy = deppy
         self.loop_vars = []
-        self.cache = cache
+        self.call_strategy = call_strategy
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
         self.team_race = team_race
         self.name = name or func.__name__
 
-    async def __call__(self, **kwargs):
-        if self.cache:
-            cache_key = self.create_cache_key(kwargs)
-            value, hit = self.cache.get(cache_key)
-            if hit:
-                return value
-
+    async def execute(self, **kwargs):
         if asyncio.iscoroutinefunction(self.func):
-            res = await self.func(**kwargs)
+            return await self.func(**kwargs)
         elif self.to_thread:
-            res = await asyncio.to_thread(self.func, **kwargs)
-        else:
-            res = self.func(**kwargs)
+            return await asyncio.to_thread(self.func, **kwargs)
+        return self.func(**kwargs)
 
-        if self.cache:
-            self.cache.set(cache_key, res)
-
-        return res
+    async def __call__(self, **kwargs):
+        return await self.call_strategy(self.execute, **kwargs) if self.call_strategy is not None else await self.execute(**kwargs)
 
     def __repr__(self):
         return f"<Node {self.name}>"
@@ -60,10 +50,3 @@ class Node:
             self.deppy.edge(dependency, self, name, loop=loop, extractor=extractor)
             return self
         return setter
-
-    @staticmethod
-    def create_cache_key(args: Dict[str, Any]) -> str:
-        try:
-            return json.dumps(args, sort_keys=True, default=str)
-        except TypeError:
-            return str(sorted(args.items()))
