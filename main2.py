@@ -41,7 +41,6 @@ other_node.data(l_node, loop=True)
 item2_node.data(item1_node)
 item3_node.data1(item1_node).data2(item2_node).coeff(coeff_node)
 
-deppy.dot("main2.dot")
 
 
 async def main():
