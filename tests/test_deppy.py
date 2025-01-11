@@ -124,3 +124,47 @@ async def test_extractor():
     assert result(lists_node) == [([1, 2], ["a", "b"])]
 
     assert len(result.children[0].children) == 2
+
+
+async def test_solo_race():
+    async def list1():
+        return [1, 4]
+
+    async def process(data):
+        await asyncio.sleep(data)
+        return data * 2
+
+    entry_times = []
+
+    async def process_again(data):
+        import time
+        entry_times.append(time.time())
+        return data * 3
+
+    deppy = Deppy()
+
+    list1_node = deppy.node(list1)
+    process_node = deppy.node(process, team_race=False)
+    process_again_node = deppy.node(process_again)
+
+    process_node.data(list1_node, loop=True)
+    process_again_node.data(process_node)
+
+    result = await deppy.execute()
+
+    assert result(process_again_node) == [6, 24]
+
+    diff = entry_times[1] - entry_times[0]
+    # branch diff is greater than 3 meaning one process started earlier than the other
+    assert diff >= 3
+
+    process_node.team_race = True
+
+    entry_times.clear()
+    result = await deppy.execute()
+
+    assert result(process_again_node) == [6, 24]
+
+    diff = entry_times[1] - entry_times[0]
+    # processes started at the same time
+    assert diff < 0.1

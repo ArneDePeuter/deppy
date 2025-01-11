@@ -13,10 +13,9 @@ class Deppy:
         self.graph = MultiDiGraph()
         self.executor = Executor(self.graph)
 
-    def node(self, func: Optional[Callable] = None, cache: Optional[Cache] = None, loop_strategy: Optional[LoopStrategy] = product) -> Union[Node, Callable[[Callable], Node]]:
-        """Register a function as a node with optional caching."""
+    def node(self, func: Optional[Callable] = None, **kwargs) -> Union[Node, Callable[[Callable], Node]]:
         def decorator(f):
-            node = Node(f, self, cache=cache, loop_strategy=loop_strategy)
+            node = Node(f, self, **kwargs)
             self.graph.add_node(node)
             assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
             return node
