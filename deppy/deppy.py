@@ -12,6 +12,12 @@ class Deppy:
         self.executor = Executor(self.graph)
         self.const_counter = 0
 
+    def get_node_by_name(self, name: str) -> Optional[Node]:
+        for node in self.graph.nodes:
+            if node.name == name:
+                return node
+        return None
+
     def node(self, func: Optional[Callable] = None, **kwargs) -> Union[Node, Callable[[Callable], Node]]:
         def decorator(f):
             node = Node(f, self, **kwargs)
@@ -52,3 +58,27 @@ class Deppy:
 
     def secret(self, value: Any, name: Optional[str] = None) -> Node:
         return self.const(value, secret=True, name=name)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> 'Deppy':
+        deppy = cls()
+        nodes = {}
+        for name, value in d["constants"].items():
+            node = deppy.const(value, name=name)
+            nodes[name] = node
+        for name, value in d["secrets"].items():
+            node = deppy.secret(value, name=name)
+            nodes[name] = node
+        for name, value in d["nodes"].items():
+            kwargs = value.copy()
+            kwargs["name"] = name
+            kwargs.pop("dependencies", None)
+            node = deppy.node(**kwargs)
+            nodes[name] = node
+        for name, value in d["nodes"].items():
+            node = nodes[name]
+            for in_edge in value.get("dependencies", []):
+                dependency = nodes[in_edge["node"]]
+                name = in_edge.get("name", in_edge["node"])
+                deppy.edge(dependency, node, name, loop=in_edge.get("loop", False), extractor=in_edge.get("extractor"))
+        return deppy

@@ -3,6 +3,8 @@ from typing import Optional, Dict, Any, List
 from .ignore_result import IgnoreResult
 from .node import Node
 
+import json
+
 
 class Scope(dict):
     not_found = object()
@@ -55,17 +57,18 @@ class Scope(dict):
     def __hash__(self) -> int:
         return id(self)
 
-    def dot(self, filename: str, ignore_secret: Optional[bool] = False) -> None:
+    def dot(self, filename: str, ignore_secret: Optional[bool] = False, max_label_size: int = 10) -> None:
         import pydot
 
         graph = pydot.Dot(graph_type='digraph')
 
         def add_node(scope):
-            label = ""
-            for key, value in scope.items():
-                if isinstance(key, Node) and key.secret and not ignore_secret:
-                    value = "***"
-                label += f"{key}: {value}\n"
+            d = scope.dump(ignore_secret)
+            for k, v in d.items():
+                if len(str(v)) > max_label_size:
+                    d[k] = str(v)[:max_label_size] + "..."
+            label = json.dumps(d, indent=2)
+            label = label.replace('"', '').replace("'", "")
             node = pydot.Node(id(scope), label=label)
             graph.add_node(node)
             for child in scope.children:
