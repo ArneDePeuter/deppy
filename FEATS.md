@@ -9,4 +9,4 @@
 - result query
 - execution selection
 - ignore result return value
-- 
+- constants
