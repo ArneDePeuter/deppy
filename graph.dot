@@ -1,0 +1,14 @@
+digraph {
+l;
+item1;
+item2;
+item3;
+coeff;
+other;
+l -> item1 [key=data, loop=True];
+l -> other [key=data, loop=True];
+item1 -> item2 [key=data, loop=False];
+item1 -> item3 [key=data1, loop=False];
+item2 -> item3 [key=data2, loop=False];
+coeff -> item3 [key=coeff, loop=False];
+}
