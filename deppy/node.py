@@ -1,16 +1,15 @@
 import asyncio
 from itertools import product
-from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Optional
 
 
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
-AnyFunc = Union[Callable[..., Any], Callable[..., Awaitable[Any]]]
 
 
 class Node:
     def __init__(
             self,
-            func: AnyFunc,
+            func: Callable[..., Any],
             deppy: 'Deppy',
             loop_strategy: Optional[LoopStrategy] = product,
             to_thread: Optional[bool] = False,
