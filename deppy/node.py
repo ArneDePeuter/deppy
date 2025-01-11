@@ -15,7 +15,7 @@ class Node:
             func: AnyFunc,
             deppy: 'Deppy',
             loop_strategy: Optional[LoopStrategy] = product,
-            call_strategies: Optional[List[WrapFn]] = None,
+            call_wrappers: Optional[List[WrapFn]] = None,
             to_thread: Optional[bool] = False,
             team_race: Optional[bool] = True,
             name: Optional[str] = None
@@ -23,8 +23,8 @@ class Node:
         self.func = func
         self.deppy = deppy
         self.loop_vars = []
-        for strategy in call_strategies or []:
-            self.func = strategy(self.func)
+        for wrapper in call_wrappers or []:
+            self.func = wrapper(self.func)
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
         self.team_race = team_race
