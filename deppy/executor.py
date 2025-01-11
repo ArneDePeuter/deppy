@@ -13,7 +13,33 @@ class Executor:
         self.work_graph = self.graph.copy()
         self.flow_graph = self.graph.copy()
 
-    async def execute_node(self, node: Node, scope: Scope) -> None:
+    async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any]) -> None:
+        result = await node(**args)
+        scopes = set()
+        if not node.loop_vars:
+            scope[node] = result
+            scopes.add(scope)
+        else:
+            child = scope.birth()
+            child[node] = result
+            scopes.add(child)
+
+        successors = self.flow_graph.successors(node)
+        if node in self.work_graph:
+            self.work_graph.remove_node(node)
+        qualified_nodes = [successor for successor in successors if self.work_graph.in_degree(successor) == 0]
+        await asyncio.gather(*[self.execute_node(successor, scope) for successor in qualified_nodes for scope in scopes])
+
+    async def solo_race(self, node: Node, scope: Scope) -> None:
+        args_list = await self._resolve_args(node, scope)
+
+        if node.loop_vars:
+            scope = scope.birth()
+            scope["scope_name"] = str(node)
+
+        await asyncio.gather(*[self.node_task(node, scope, single_args) for single_args in args_list])
+
+    async def team_race(self, node: Node, scope: Scope) -> None:
         args_list = await self._resolve_args(node, scope)
         results = await asyncio.gather(*[node(**single_args) for single_args in args_list])
 
@@ -34,6 +60,9 @@ class Executor:
             self.work_graph.remove_node(node)
         qualified_nodes = [successor for successor in successors if self.work_graph.in_degree(successor) == 0]
         await asyncio.gather(*[self.execute_node(successor, scope) for successor in qualified_nodes for scope in scopes])
+
+    async def execute_node(self, node: Node, scope: Scope) -> None:
+        await self.team_race(node, scope)
 
     def subgraph_work_graph(self, *target_nodes):
         relevant_nodes = set()
