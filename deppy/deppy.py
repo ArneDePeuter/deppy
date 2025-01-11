@@ -1,10 +1,8 @@
 from networkx import MultiDiGraph, is_directed_acyclic_graph
-from itertools import product
 from typing import Optional, Callable, Union, Sequence, Any
 
-from .node import Node, LoopStrategy
+from .node import Node
 from .executor import Executor
-from .cache import Cache
 from .scope import Scope
 
 
