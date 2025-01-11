@@ -1,12 +1,10 @@
 import asyncio
 from itertools import product
-from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, List
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional
 
 
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
 AnyFunc = Union[Callable[..., Any], Callable[..., Awaitable[Any]]]
-
-WrapFn = Callable[[AnyFunc], AnyFunc]
 
 
 class Node:
@@ -15,7 +13,6 @@ class Node:
             func: AnyFunc,
             deppy: 'Deppy',
             loop_strategy: Optional[LoopStrategy] = product,
-            call_wrappers: Optional[List[WrapFn]] = None,
             to_thread: Optional[bool] = False,
             team_race: Optional[bool] = True,
             name: Optional[str] = None
@@ -23,8 +20,6 @@ class Node:
         self.func = func
         self.deppy = deppy
         self.loop_vars = []
-        for wrapper in call_wrappers or []:
-            self.func = wrapper(self.func)
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
         self.team_race = team_race

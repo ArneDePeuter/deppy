@@ -4,7 +4,6 @@
 - parameter extractors
 - DAG validation
 - solo/team race
-- call wrappers
 - dot graph of DAG and of result
 - result query
 - execution selection

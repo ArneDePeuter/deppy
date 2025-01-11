@@ -277,7 +277,10 @@ async def test_dkr_wrapper():
     def request(url, headers, params):
         return f"{url} {headers} {params}"
 
-    auth_node = deppy.node(request, call_wrappers=[Dkr(url="auth", headers=JsonDk({"Authorization": "{token}"}), params=None)], name="auth_request")
+    auth_request = Dkr(url="auth", headers=JsonDk({"Authorization": "{token}"}), params=None)(request, "auth")
+    assert auth_request.__name__ == "request_auth"
+
+    auth_node = deppy.node(auth_request)
     token = deppy.const("123")
 
     auth_node.token(token)

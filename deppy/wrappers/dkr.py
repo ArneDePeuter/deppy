@@ -1,8 +1,9 @@
 from functools import wraps
 from abc import ABC, abstractmethod
 import re
-from typing import Iterable, Set, Dict, Any, Union
+from typing import Iterable, Set, Dict, Any, Union, Optional
 from collections.abc import MutableMapping as Mapping
+import asyncio
 
 
 class Dk(ABC):
@@ -127,12 +128,20 @@ class Dkr:
                 resolved_kwargs[k] = v
         return resolved_kwargs
 
-    def wraps(self, func):
-        @wraps(func)
-        def wrapper(**kwargs):
-            resolved_kwargs = self.resolve(kwargs)
-            return func(**resolved_kwargs)
+    def wraps(self, func, sub_name: Optional[str] = None):
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def wrapper(**kwargs):
+                resolved_kwargs = self.resolve(kwargs)
+                return await func(**resolved_kwargs)
+        else:
+            @wraps(func)
+            def wrapper(**kwargs):
+                resolved_kwargs = self.resolve(kwargs)
+                return func(**resolved_kwargs)
+        if sub_name:
+            wrapper.__name__ = f"{func.__name__}_{sub_name}"
         return wrapper
 
-    def __call__(self, func):
-        return self.wraps(func)
+    def __call__(self, func, sub_name: Optional[str] = None):
+        return self.wraps(func, sub_name)
