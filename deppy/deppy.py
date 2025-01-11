@@ -1,6 +1,7 @@
-from .node import Node, LoopMethod
+from .node import Node
 from .executor import Executor
 from networkx import MultiDiGraph, is_directed_acyclic_graph
+from itertools import product
 
 
 class Deppy:
@@ -10,7 +11,7 @@ class Deppy:
         self.graph = MultiDiGraph()
         self.executor = Executor(self.graph)
 
-    def node(self, func=None, cache=None, loop_method=LoopMethod.CARTESIAN):
+    def node(self, func=None, cache=None, loop_method=product):
         """Register a function as a node with optional caching."""
         def decorator(f):
             node = Node(f, self, cache=cache, loop_method=loop_method)
