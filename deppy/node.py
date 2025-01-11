@@ -1,12 +1,5 @@
 import json
 import asyncio
-from enum import Enum
-from itertools import product
-
-
-class LoopMethod(Enum):
-    CARTESIAN = "cartesian"
-    ZIP = "zip"
 
 
 class Node:
@@ -18,10 +11,7 @@ class Node:
         self.dependencies = {}  # Store dependencies for arguments
         self.loop_vars = []  # Store loop variables as (arg_name, iterable)
         self.cache = cache
-        self.loop_method = {
-            LoopMethod.CARTESIAN: product,
-            LoopMethod.ZIP: zip
-        }[loop_method]
+        self.loop_method = loop_method
 
     async def __call__(self, **kwargs):
         if self.cache:
