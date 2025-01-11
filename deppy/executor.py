@@ -88,24 +88,27 @@ class Executor:
             new_child[node] = result
             self.scope_map[node].add(new_child)
 
-    async def execute_node(self, node, func_task_cache: dict):
+    async def execute_node(self, node):
         predecessors = self.graph.predecessors(node)
         scopes = [self.scope_map[predecessor] for predecessor in predecessors if predecessor in self.scope_map]
         assert len(scopes) < 2, f"Joining scopes not implemented, detected in {node}"
 
         scopes = scopes[0] if scopes else [self.root]
 
+        # Don't execute the same function with the same arguments parallel... That would be wasteful
+        func_task_cache = {}
         await asyncio.gather(*[self.execute_node_in_scope(node, scope, func_task_cache) for scope in scopes])
+
+        successors = self.graph.successors(node)
+        self.work_graph.remove_node(node)
+        qualified_nodes = [successor for successor in successors if self.work_graph.in_degree(successor) == 0]
+        await asyncio.gather(*[self.execute_node(successor) for successor in qualified_nodes])
 
     async def execute(self) -> ScopedDict:
         """Execute the graph layer by layer."""
         self.work_graph = self.graph.copy()
-        while qualified_nodes := [node for node in self.work_graph if self.work_graph.in_degree(node) == 0]:
-            func_task_cache = {}
-            node_tasks = [self.execute_node(node, func_task_cache) for node in qualified_nodes]
-            await asyncio.gather(*node_tasks)
-            for node in qualified_nodes:
-                self.work_graph.remove_node(node)
+        qualified_nodes = [node for node in self.work_graph if self.work_graph.in_degree(node) == 0]
+        await asyncio.gather(*[self.execute_node(node) for node in qualified_nodes])
         return self.root
 
     @staticmethod
