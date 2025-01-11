@@ -75,7 +75,7 @@ async def test_loopmethod_zip():
 
     l1_node = deppy.node(l1)
     l2_node = deppy.node(l2)
-    item1_node = deppy.node(item1, loop_method=zip)
+    item1_node = deppy.node(item1, loop_strategy=zip)
 
     item1_node.data1(l1_node, loop=True).data2(l2_node, loop=True)
 
@@ -97,7 +97,7 @@ async def test_loopmethod_cartesian():
 
     l1_node = deppy.node(l1)
     l2_node = deppy.node(l2)
-    item1_node = deppy.node(item1, loop_method=product)
+    item1_node = deppy.node(item1, loop_strategy=product)
 
     item1_node.data1(l1_node, loop=True).data2(l2_node, loop=True)
 
