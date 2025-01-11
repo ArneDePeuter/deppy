@@ -103,3 +103,24 @@ async def test_loopmethod_cartesian():
 
     result = await deppy.execute()
     assert result(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
+
+
+async def test_extractor():
+    deppy = Deppy()
+
+    async def lists():
+        return [1, 2], ["a", "b"]
+
+    async def combine(val1, val2):
+        return f"{val1}-{val2}"
+
+    lists_node = deppy.node(lists)
+    combine_node = deppy.node(combine, loop_strategy=zip)
+
+    combine_node.val1(lists_node, loop=True, extractor=lambda x: x[0]).val2(lists_node, loop=True, extractor=lambda x: x[1])
+
+    result = await deppy.execute()
+    assert result(combine_node) == ["1-a", "2-b"]
+    assert result(lists_node) == [([1, 2], ["a", "b"])]
+
+    assert len(result.children[0].children) == 2

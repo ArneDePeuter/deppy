@@ -23,7 +23,6 @@ class Node:
         self.name = name or func.__name__
         self.func = func
         self.deppy = deppy
-        self.dependencies = {}
         self.loop_vars = []
         self.cache = cache
         self.loop_strategy = loop_strategy
@@ -55,9 +54,8 @@ class Node:
         return self.name
 
     def __getattr__(self, name: str) -> Callable[[Any], 'Node']:
-        def setter(dependency, loop=False):
-            self.deppy.edge(dependency, self, name, loop=loop)
-            self.dependencies[name] = dependency
+        def setter(dependency, loop: Optional[bool] = False, extractor: Optional[Callable[[Any], Any]] = None):
+            self.deppy.edge(dependency, self, name, loop=loop, extractor=extractor)
             return self
         return setter
 
