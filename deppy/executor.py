@@ -1,5 +1,4 @@
 import asyncio
-from itertools import product
 from typing import Optional
 
 from .node import Node
@@ -102,6 +101,6 @@ class Executor:
         if node.loop_vars:
             loop_keys = [name for name, _ in node.loop_vars]
             loop_values = [scope[dep] if isinstance(dep, Node) else dep for _, dep in node.loop_vars]
-            return [{**resolved_args, **dict(zip(loop_keys, combination))} for combination in product(*loop_values)]
+            return [{**resolved_args, **dict(zip(loop_keys, combination))} for combination in node.loop_method(*loop_values)]
 
         return [resolved_args]

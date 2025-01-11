@@ -1,4 +1,4 @@
-from .node import Node
+from .node import Node, LoopMethod
 from .executor import Executor
 from networkx import MultiDiGraph, is_directed_acyclic_graph
 
@@ -10,10 +10,10 @@ class Deppy:
         self.graph = MultiDiGraph()
         self.executor = Executor(self.graph)
 
-    def node(self, func=None, cache=None):
+    def node(self, func=None, cache=None, loop_method=LoopMethod.CARTESIAN):
         """Register a function as a node with optional caching."""
         def decorator(f):
-            node = Node(f, self, cache=cache)
+            node = Node(f, self, cache=cache, loop_method=loop_method)
             self.graph.add_node(node)
             assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
             return node
