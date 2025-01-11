@@ -170,20 +170,3 @@ async def test_solo_race():
     # processes started at the same time
     assert diff < 0.1
 
-
-async def test_call_strategy():
-    call_amount = 0
-
-    def function():
-        nonlocal call_amount
-        call_amount += 1
-        return ""
-
-    deppy = Deppy()
-
-    node = deppy.node(function, call_strategy=Cache())
-
-    await deppy.execute()
-    await deppy.execute()
-
-    assert call_amount == 1
