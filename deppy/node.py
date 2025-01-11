@@ -1,7 +1,7 @@
 import json
 import asyncio
 from itertools import product
-from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, List
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, Dict
 
 from .cache import Cache
 
@@ -18,15 +18,17 @@ class Node:
             loop_strategy: Optional[LoopStrategy] = product,
             cache: Optional[Cache] = None,
             to_thread: Optional[bool] = False,
+            team_race: Optional[bool] = True,
             name: Optional[str] = None
     ):
-        self.name = name or func.__name__
         self.func = func
         self.deppy = deppy
         self.loop_vars = []
         self.cache = cache
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
+        self.team_race = team_race
+        self.name = name or func.__name__
 
     async def __call__(self, **kwargs):
         if self.cache:
@@ -60,7 +62,7 @@ class Node:
         return setter
 
     @staticmethod
-    def create_cache_key(args: List[Any]) -> str:
+    def create_cache_key(args: Dict[str, Any]) -> str:
         try:
             return json.dumps(args, sort_keys=True, default=str)
         except TypeError:
