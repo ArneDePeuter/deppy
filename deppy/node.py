@@ -1,17 +1,33 @@
 import json
 import asyncio
+from itertools import product
+from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Awaitable, Optional, List
+
+from .cache import Cache
+
+
+LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
+AnyFunc = Union[Callable[..., Any], Callable[..., Awaitable[Any]]]
 
 
 class Node:
-    """A wrapper to manage function nodes and dependencies."""
-
-    def __init__(self, func, deppy, loop_method, cache):
+    def __init__(
+            self,
+            func: AnyFunc,
+            deppy: 'Deppy',
+            loop_strategy: Optional[LoopStrategy] = product,
+            cache: Optional[Cache] = None,
+            to_thread: Optional[bool] = False,
+            name: Optional[str] = None
+    ):
+        self.name = name or func.__name__
         self.func = func
         self.deppy = deppy
-        self.dependencies = {}  # Store dependencies for arguments
-        self.loop_vars = []  # Store loop variables as (arg_name, iterable)
+        self.dependencies = {}
+        self.loop_vars = []
         self.cache = cache
-        self.loop_method = loop_method
+        self.loop_strategy = loop_strategy
+        self.to_thread = to_thread
 
     async def __call__(self, **kwargs):
         if self.cache:
@@ -22,6 +38,8 @@ class Node:
 
         if asyncio.iscoroutinefunction(self.func):
             res = await self.func(**kwargs)
+        elif self.to_thread:
+            res = await asyncio.to_thread(self.func, **kwargs)
         else:
             res = self.func(**kwargs)
 
@@ -31,13 +49,12 @@ class Node:
         return res
 
     def __repr__(self):
-        return f"<Node {self.func.__name__}>"
+        return f"<Node {self.name}>"
 
     def __str__(self):
-        return self.func.__name__
+        return self.name
 
-    def __getattr__(self, name):
-        """Allow dynamic setting of dependencies."""
+    def __getattr__(self, name: str) -> Callable[[Any], 'Node']:
         def setter(dependency, loop=False):
             self.deppy.edge(dependency, self, name, loop=loop)
             self.dependencies[name] = dependency
@@ -45,8 +62,7 @@ class Node:
         return setter
 
     @staticmethod
-    def create_cache_key(args):
-        """Create a robust and unique cache key."""
+    def create_cache_key(args: List[Any]) -> str:
         try:
             return json.dumps(args, sort_keys=True, default=str)
         except TypeError:
