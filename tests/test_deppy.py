@@ -1,6 +1,7 @@
 import asyncio
 from deppy import Deppy, IgnoreResult
 from itertools import product
+from deppy.wrappers import Dkr, JsonDk
 
 
 def test_deppy_register_node():
@@ -268,3 +269,18 @@ async def test_constant():
 
     result = await deppy.execute()
     assert result(add_node) == [2, 4, 6]
+
+
+async def test_dkr_wrapper():
+    deppy = Deppy()
+
+    def request(url, headers, params):
+        return f"{url} {headers} {params}"
+
+    auth_node = deppy.node(request, call_wrappers=[Dkr(url="auth", headers=JsonDk({"Authorization": "{token}"}), params=None)], name="auth_request")
+    token = deppy.const("123")
+
+    auth_node.token(token)
+
+    result = await deppy.execute()
+    assert result(auth_node) == ["auth {'Authorization': '123'} None"]

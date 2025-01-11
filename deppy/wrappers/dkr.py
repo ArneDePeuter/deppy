@@ -1,7 +1,8 @@
 from functools import wraps
 from abc import ABC, abstractmethod
 import re
-from typing import Iterable, Set, Dict, Any, Union, Mapping
+from typing import Iterable, Set, Dict, Any, Union
+from collections.abc import MutableMapping as Mapping
 
 
 class Dk(ABC):
@@ -26,8 +27,8 @@ class StringDk(Dk):
         return self.value.format(**data)
 
 
-class DictDk(Dk):
-    def __init__(self, value: Dict[Union[str, Dk], Union[Any, Dk]]):
+class MappingDk(Dk):
+    def __init__(self, value: Mapping[Union[Any, Dk], Union[Any, Dk]]):
         self.value = value
         keys = self.gather_keys(value)
         super().__init__(keys)
@@ -44,7 +45,7 @@ class DictDk(Dk):
         return keys
 
     def resolve(self, data):
-        result = {}
+        result = type(self.value)()
         for k, v in self.value.items():
             if isinstance(k, Dk):
                 k = k.resolve(data)
@@ -81,24 +82,26 @@ class JsonDk(Dk):
                 return dk, True
             else:
                 return value, False
-        elif isinstance(value, dict):
+        elif isinstance(value, Mapping):
             has_dk = False
             for k, v in value.items():
                 dk, detected = self.emplace_if_detected(v)
                 value[k] = dk
                 has_dk = has_dk or detected
             if has_dk:
-                return DictDk(value), True
+                return MappingDk(value), True
             else:
                 return value, False
-        elif isinstance(value, list):
+        elif isinstance(value, Iterable):
             has_dk = False
-            for i, v in enumerate(value):
+            new_vals = []
+            for v in value:
                 dk, detected = self.emplace_if_detected(v)
-                value[i] = dk
+                new_vals.append(dk)
                 has_dk = has_dk or detected
             if has_dk:
-                return IterDk(value), True
+                new_vals = type(value)(new_vals)
+                return IterDk(new_vals), True
             else:
                 return value, False
         return value, False
