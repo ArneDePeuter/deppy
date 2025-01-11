@@ -56,69 +56,43 @@ class Executor:
         self.graph = graph
         self.root = ScopedDict()
         self.work_graph = self.graph.copy()
-        self.scope_map = {}
 
-    async def execute_node_in_scope(self, node, scope, func_task_cache: dict):
+    async def execute_node(self, node, scope):
         args_list = await self._resolve_args(node, scope)
-        node_tasks = []
+        results = await asyncio.gather(*[node(**single_args) for single_args in args_list])
 
-        for single_args in args_list:
-            func_task_key = (node.func.__name__, node.create_cache_key(single_args))
-            existing_task = func_task_cache.get(func_task_key)
-            if existing_task is None:
-                task = asyncio.create_task(node(**single_args))
-                func_task_cache[func_task_key] = task
-                node_tasks.append(task)
-            else:
-                node_tasks.append(existing_task)
-
-        await asyncio.gather(*node_tasks)
-
+        scopes = set()
         if not node.loop_vars:
-            scope[node] = node_tasks[0].result()
-            return
-
-        child = scope.birth()
-        child["scope_name"] = str(node)
-        if node not in self.scope_map:
-            self.scope_map[node] = set()
-        for task in node_tasks:
-            result = task.result()
-            new_child = child.birth()
-            new_child[node] = result
-            self.scope_map[node].add(new_child)
-
-    async def execute_node(self, node):
-        predecessors = self.graph.predecessors(node)
-        scopes = [self.scope_map[predecessor] for predecessor in predecessors if predecessor in self.scope_map]
-        assert len(scopes) < 2, f"Joining scopes not implemented, detected in {node}"
-
-        scopes = scopes[0] if scopes else [self.root]
-
-        # Don't execute the same function with the same arguments parallel... That would be wasteful
-        func_task_cache = {}
-        await asyncio.gather(*[self.execute_node_in_scope(node, scope, func_task_cache) for scope in scopes])
+            scope[node] = results[0]
+            scopes.add(scope)
+        else:
+            child = scope.birth()
+            child["scope_name"] = str(node)
+            for result in results:
+                new_child = child.birth()
+                new_child[node] = result
+                scopes.add(new_child)
 
         successors = self.graph.successors(node)
-        self.work_graph.remove_node(node)
+        if node in self.work_graph:
+            self.work_graph.remove_node(node)
         qualified_nodes = [successor for successor in successors if self.work_graph.in_degree(successor) == 0]
-        await asyncio.gather(*[self.execute_node(successor) for successor in qualified_nodes])
+        await asyncio.gather(*[self.execute_node(successor, scope) for successor in qualified_nodes for scope in scopes])
 
     async def execute(self) -> ScopedDict:
         """Execute the graph layer by layer."""
         self.work_graph = self.graph.copy()
         qualified_nodes = [node for node in self.work_graph if self.work_graph.in_degree(node) == 0]
-        await asyncio.gather(*[self.execute_node(node) for node in qualified_nodes])
+        await asyncio.gather(*[self.execute_node(node, self.root) for node in qualified_nodes])
         return self.root
 
     @staticmethod
-    async def _resolve_args(node, results):
-        """Resolve arguments for a node based on resolved dependencies."""
+    async def _resolve_args(node, scope):
         resolved_args = {}
 
         for name, dep in node.dependencies.items():
             if isinstance(dep, Node):
-                resolved_args[name] = results[dep]
+                resolved_args[name] = scope[dep]
             elif callable(dep):
                 resolved_args[name] = await asyncio.to_thread(dep)
             else:
@@ -127,7 +101,7 @@ class Executor:
         # Handle Cartesian product for loop variables
         if node.loop_vars:
             loop_keys = [name for name, _ in node.loop_vars]
-            loop_values = [results[dep] if isinstance(dep, Node) else dep for _, dep in node.loop_vars]
+            loop_values = [scope[dep] if isinstance(dep, Node) else dep for _, dep in node.loop_vars]
             return [{**resolved_args, **dict(zip(loop_keys, combination))} for combination in product(*loop_values)]
 
         return [resolved_args]
