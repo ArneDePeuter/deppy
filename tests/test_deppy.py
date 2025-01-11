@@ -170,9 +170,6 @@ async def test_solo_race():
     assert diff < 0.1
 
 
-from deppy.deppy import Deppy
-
-
 async def test_node_execution_without_dependencies():
     deppy = Deppy()
 
