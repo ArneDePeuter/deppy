@@ -60,7 +60,7 @@ async def test_unique_scope_upon_loop():
     assert result(item3_node) == [(2, 6), (4, 12), (6, 18)]
 
 
-async def test_zip():
+async def test_loopmethod_zip():
     def l1():
         return [1, 2, 3]
 
@@ -81,3 +81,24 @@ async def test_zip():
     result = await deppy.execute()
     assert result(item1_node) == [(1, "a"), (2, "b"), (3, "c")]
 
+
+async def test_loopmethod_cartesian():
+    def l1():
+        return [1, 2, 3]
+
+    def l2():
+        return ["a", "b", "c"]
+
+    def item1(data1, data2):
+        return data1, data2
+
+    deppy = Deppy()
+
+    l1_node = deppy.node(l1)
+    l2_node = deppy.node(l2)
+    item1_node = deppy.node(item1, loop_method=LoopMethod.CARTESIAN)
+
+    item1_node.data1(l1_node, loop=True).data2(l2_node, loop=True)
+
+    result = await deppy.execute()
+    assert result(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
