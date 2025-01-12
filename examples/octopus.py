@@ -96,49 +96,40 @@ def octopus(
         headers=JsonDk({"dossierToken": "{dossier_token}"})
     )(client.get, "bookyears")
 
-    modified_accounts_request = ignore_on_status_codes(
-        stated_kwargs(
-            Dkr(
-                url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
-                headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
-            )(client.get, "modified_accounts"),
-            name="modified_timestamp",
-            initial_value=initial_modified_timestamp,
-            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            keys=["dossier_id"],
-        ),
-        {404}
+    def modified_request(request):
+        return ignore_on_status_codes(
+            stated_kwargs(
+                request,
+                name="modified_timestamp",
+                initial_value=initial_modified_timestamp,
+                produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                keys=["dossier_id"],
+            ),
+            {404}
+        )
+
+    modified_accounts_request = modified_request(
+        Dkr(
+            url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
+            params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+        )(client.get, "modified_accounts")
     )
 
-    modified_bookings_request = ignore_on_status_codes(
-        stated_kwargs(
-            Dkr(
-                url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
-                headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"})
-            )(client.get, "modified_bookings"),
-            name="modified_timestamp",
-            initial_value=initial_modified_timestamp,
-            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            keys=["dossier_id"],
-        ),
-        {404}
+    modified_bookings_request = modified_request(
+        Dkr(
+            url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
+            params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"})
+        )(client.get, "modified_bookings")
     )
 
-    modified_relations_request = ignore_on_status_codes(
-        stated_kwargs(
-            Dkr(
-                url=StringDk("/dossiers/{dossier_id}/relations/modified"),
-                headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
-            )(client.get, "modified_relations"),
-            name="modified_timestamp",
-            initial_value=initial_modified_timestamp,
-            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            keys=["dossier_id"],
-        ),
-        {404}
+    modified_relations_request = modified_request(
+        Dkr(
+            url=StringDk("/dossiers/{dossier_id}/relations/modified"),
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
+            params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+        )(client.get, "modified_relations")
     )
 
     # create the Deppy graph
