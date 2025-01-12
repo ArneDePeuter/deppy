@@ -129,16 +129,18 @@ class Dkr:
         return resolved_kwargs
 
     def wraps(self, func, sub_name: Optional[str] = None):
-        if asyncio.iscoroutinefunction(func):
-            @wraps(func)
-            async def wrapper(**kwargs):
-                resolved_kwargs = self.resolve(kwargs)
-                return await func(**resolved_kwargs)
-        else:
-            @wraps(func)
-            def wrapper(**kwargs):
-                resolved_kwargs = self.resolve(kwargs)
-                return func(**resolved_kwargs)
+        @wraps(func)
+        async def async_wrapper(**kwargs):
+            resolved_kwargs = self.resolve(kwargs)
+            return await func(**resolved_kwargs)
+
+        @wraps(func)
+        def sync_wrapper(**kwargs):
+            resolved_kwargs = self.resolve(kwargs)
+            return func(**resolved_kwargs)
+
+        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
         if sub_name:
             wrapper.__name__ = f"{func.__name__}_{sub_name}"
         return wrapper
