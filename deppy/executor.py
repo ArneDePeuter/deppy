@@ -1,6 +1,7 @@
 import asyncio
-from typing import Dict, Any, List, Sequence, Iterable
+from typing import Dict, Any, List, Sequence, Iterable, Optional
 from networkx import MultiDiGraph
+from tqdm.asyncio import tqdm
 
 from .node import Node
 from .scope import Scope
@@ -11,6 +12,7 @@ class Executor:
     def __init__(self, graph: MultiDiGraph) -> None:
         self.graph = graph
         self.flow_graph = None
+        self.pbar = None
 
     async def execute_successors(self, node: Node, scopes: Iterable[Scope], work_graph: MultiDiGraph) -> None:
         successors = self.flow_graph.successors(node)
@@ -32,6 +34,8 @@ class Executor:
 
         if node in work_graph:
             work_graph.remove_node(node)
+            if self.pbar is not None:
+                self.pbar.update(1)
         await self.execute_successors(node, scopes, work_graph)
 
     async def solo_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
@@ -63,6 +67,8 @@ class Executor:
 
         if node in work_graph:
             work_graph.remove_node(node)
+            if self.pbar is not None:
+                self.pbar.update(1)
         await self.execute_successors(node, scopes, work_graph)
 
     async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
@@ -88,14 +94,20 @@ class Executor:
         work_graph.remove_nodes_from(irrelevant_nodes)
         return work_graph
 
-    async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
+    async def execute(self, *target_nodes: Sequence[Node], with_pbar: Optional[bool] = True) -> Scope:
         """Execute the graph layer by layer."""
         work_graph = self.create_work_graph(*target_nodes)
         self.flow_graph = work_graph.copy()
         root = Scope()
 
         qualified_nodes = [node for node in work_graph if work_graph.in_degree(node) == 0]
-        await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
+
+        if with_pbar:
+            with tqdm(total=len(work_graph), desc="Executing Deppy Graph", unit="node") as self.pbar:
+                await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
+            self.pbar = None
+        else:
+            await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
         return root
 
     async def _resolve_args(self, node: Node, scope: Scope) -> List[Dict[str, Any]]:
