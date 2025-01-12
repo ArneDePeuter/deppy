@@ -5,7 +5,7 @@ import os
 import json
 import asyncio
 from deppy import Deppy, IgnoreResult
-from deppy.wrappers import Dkr, JsonDk, StringDk
+from deppy.helpers.wrappers import Dkr, JsonDk, StringDk
 
 P = ParamSpec("P")
 T = TypeVar("T")

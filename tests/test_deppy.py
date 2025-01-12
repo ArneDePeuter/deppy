@@ -1,7 +1,7 @@
 import asyncio
 from deppy import Deppy, IgnoreResult
 from itertools import product
-from deppy.wrappers import Dkr, JsonDk
+from deppy.helpers.wrappers import Dkr, JsonDk
 
 
 def test_deppy_register_node():
