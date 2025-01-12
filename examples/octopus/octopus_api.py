@@ -34,62 +34,63 @@ def ignore_on_status_codes(function: Callable[P, Awaitable[httpx.Response]], sta
     return wrapper
 
 
-class OctopusApi:
+class OctopusApi(httpx.AsyncClient):
     def __init__(
             self,
-            client: httpx.AsyncClient,
+            base_url: str,
             initial_modified_timestamp: str,
             stated_kwargs: StatedKwargs
     ):
-        client.request = request_wrapper(client.request)
+        super().__init__(base_url=base_url)
+        self.request = request_wrapper(self.request)
 
         self.auth_request = Dkr(
             url="/authentication",
             headers=JsonDk({"softwareHouseUuid": "{software_house_uuid}"}),
             json=JsonDk({"user": "{user}", "password": "{password}"}),
-        )(client.post, "auth")
+        )(self.post, "auth")
 
         self.dossiers_request = Dkr(
             url="/dossiers",
             headers=JsonDk({"Token": "{token}"})
-        )(client.get, "dossiers")
+        )(self.get, "dossiers")
 
         self.dossier_token_info_request = Dkr(
             url="/dossiers",
             headers=JsonDk({"Token": "{token}"}),
             params=JsonDk({"dossierId": "{dossier_id}", "localeId": "{locale_id}"})
-        )(client.post, "dossier_token_info")
+        )(self.post, "dossier_token_info")
 
         self.accounts_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/accounts"),
             headers=JsonDk({"dossierToken": "{dossier_token}"}),
             params=JsonDk({"bookyearId": "{bookyear_id}"})
-        )(client.get, "accounts")
+        )(self.get, "accounts")
 
         self.products_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/products"),
             headers=JsonDk({"dossierToken": "{dossier_token}"})
-        )(client.get, "products")
+        )(self.get, "products")
 
         self.vatcodes_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/vatcodes"),
             headers=JsonDk({"dossierToken": "{dossier_token}"})
-        )(client.get, "vatcodes")
+        )(self.get, "vatcodes")
 
         self.relations_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/relations"),
             headers=JsonDk({"dossierToken": "{dossier_token}"})
-        )(client.get, "relations")
+        )(self.get, "relations")
 
         self.product_groups_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/productgroups"),
             headers=JsonDk({"dossierToken": "{dossier_token}"})
-        )(client.get, "product_groups")
+        )(self.get, "product_groups")
 
         self.bookyears_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/bookyears"),
             headers=JsonDk({"dossierToken": "{dossier_token}"})
-        )(client.get, "bookyears")
+        )(self.get, "bookyears")
 
         def modified_request(request):
             return ignore_on_status_codes(
@@ -108,7 +109,7 @@ class OctopusApi:
                 url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
                 params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
-            )(client.get, "modified_accounts")
+            )(self.get, "modified_accounts")
         )
 
         self.modified_bookings_request = modified_request(
@@ -116,7 +117,7 @@ class OctopusApi:
                 url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
                 params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"})
-            )(client.get, "modified_bookings")
+            )(self.get, "modified_bookings")
         )
 
         self.modified_relations_request = modified_request(
@@ -124,5 +125,5 @@ class OctopusApi:
                 url=StringDk("/dossiers/{dossier_id}/relations/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
                 params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
-            )(client.get, "modified_relations")
+            )(self.get, "modified_relations")
         )
