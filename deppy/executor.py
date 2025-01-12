@@ -34,12 +34,13 @@ class Executor:
 
         if node in work_graph:
             work_graph.remove_node(node)
-            if self.pbar is not None:
-                self.pbar.update(1)
         await self.execute_successors(node, scopes, work_graph)
 
     async def solo_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
+
+        if self.pbar:
+            self.pbar.total += len(args_list)
 
         if node.loop_vars:
             scope = scope.birth()
@@ -47,9 +48,19 @@ class Executor:
 
         await asyncio.gather(*[self.node_task(node, scope, single_args, work_graph.copy()) for single_args in args_list])
 
+        if self.pbar:
+            self.pbar.update(len(args_list))
+
     async def team_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
+
+        if self.pbar:
+            self.pbar.total += len(args_list)
+
         results = await asyncio.gather(*[node(**single_args) for single_args in args_list])
+
+        if self.pbar:
+            self.pbar.update(len(args_list))
 
         scopes = set()
         if not node.loop_vars:
@@ -67,8 +78,6 @@ class Executor:
 
         if node in work_graph:
             work_graph.remove_node(node)
-            if self.pbar is not None:
-                self.pbar.update(1)
         await self.execute_successors(node, scopes, work_graph)
 
     async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
@@ -103,8 +112,9 @@ class Executor:
         qualified_nodes = [node for node in work_graph if work_graph.in_degree(node) == 0]
 
         if with_pbar:
-            with tqdm(total=len(work_graph), desc="Executing Deppy Graph", unit="node") as self.pbar:
+            with tqdm(total=1, desc="Executing Deppy Graph", unit="node") as self.pbar:
                 await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
+                self.pbar.total -= 1
             self.pbar = None
         else:
             await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
