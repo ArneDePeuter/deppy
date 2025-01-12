@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Any, List, Sequence
+from typing import Dict, Any, List, Sequence, Iterable
 from networkx import MultiDiGraph
 
 from .node import Node
@@ -11,6 +11,11 @@ class Executor:
     def __init__(self, graph: MultiDiGraph) -> None:
         self.graph = graph
         self.flow_graph = None
+
+    async def execute_successors(self, node: Node, scopes: Iterable[Scope], work_graph: MultiDiGraph) -> None:
+        successors = self.flow_graph.successors(node)
+        qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
+        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
 
     async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any], work_graph: MultiDiGraph) -> None:
         result = await node(**args)
@@ -25,11 +30,9 @@ class Executor:
             if not isinstance(result, IgnoreResult):
                 scopes.add(child)
 
-        successors = self.flow_graph.successors(node)
         if node in work_graph:
             work_graph.remove_node(node)
-        qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
-        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
+        await self.execute_successors(node, scopes, work_graph)
 
     async def solo_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
@@ -58,11 +61,9 @@ class Executor:
                 if not isinstance(result, IgnoreResult):
                     scopes.add(child)
 
-        successors = self.flow_graph.successors(node)
         if node in work_graph:
             work_graph.remove_node(node)
-        qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
-        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
+        await self.execute_successors(node, scopes, work_graph)
 
     async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         if node.team_race:
@@ -71,7 +72,7 @@ class Executor:
             await self.solo_race(node, scope, work_graph)
 
     def create_work_graph(self, *target_nodes) -> MultiDiGraph:
-        work_graph = self.graph.copy()
+        work_graph: MultiDiGraph = self.graph.copy()
         if len(target_nodes) == 0:
             return work_graph
 
@@ -98,15 +99,10 @@ class Executor:
         return root
 
     async def _resolve_args(self, node: Node, scope: Scope) -> List[Dict[str, Any]]:
-        resolved_args = {}
-
-        for pred in self.graph.predecessors(node):
-            pred_data = scope[pred]
-            for key, edge_data in self.graph.get_edge_data(pred, node).items():
-                if (extractor := edge_data.get("extractor")) is not None:
-                    resolved_args[key] = extractor(pred_data)
-                else:
-                    resolved_args[key] = pred_data
+        resolved_args = {
+            key: scope[pred]
+            for pred, _,  key in self.graph.in_edges(node, keys=True)
+        }
 
         if node.loop_vars:
             loop_keys = [key for key, _ in node.loop_vars]

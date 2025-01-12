@@ -1,42 +1,19 @@
-from networkx import MultiDiGraph, is_directed_acyclic_graph
-from typing import Optional, Callable, Union, Sequence, Any
-
-from .node import Node
+from .multidag_builder import GraphBuilder
 from .executor import Executor
-from .scope import Scope
 
 
 class Deppy:
     def __init__(self) -> None:
-        self.graph = MultiDiGraph()
+        self.graph_builder = GraphBuilder()
+        self.graph = self.graph_builder.graph
+        self.add_node = self.graph_builder.add_node
+        self.add_output = self.graph_builder.add_output
+        self.add_edge = self.graph_builder.add_edge
+        self.add_const = self.graph_builder.add_const
+        self.add_secret = self.graph_builder.add_secret
+
         self.executor = Executor(self.graph)
-        self.const_counter = 0
-
-    def get_node_by_name(self, name: str) -> Optional[Node]:
-        for node in self.graph.nodes:
-            if node.name == name:
-                return node
-        return None
-
-    def node(self, func: Optional[Callable] = None, **kwargs) -> Union[Node, Callable[[Callable], Node]]:
-        def decorator(f):
-            node = Node(f, self, **kwargs)
-            self.graph.add_node(node)
-            assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
-            return node
-
-        if func:
-            return decorator(func)
-        return decorator
-
-    def edge(self, node1: Node, node2: Node, in_kwarg_name: str, loop: Optional[bool] = False, extractor: Optional[Callable[[Any], Any]] = None) -> None:
-        if loop:
-            node2.loop_vars.append((in_kwarg_name, node1))
-        self.graph.add_edge(node1, node2, key=in_kwarg_name, loop=loop, extractor=extractor)
-        assert is_directed_acyclic_graph(self.graph), "Circular dependency detected in the graph!"
-
-    async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
-        return await self.executor.execute(*target_nodes)
+        self.execute = self.executor.execute
 
     def dot(self, filename: str) -> None:
         from networkx.drawing.nx_pydot import write_dot
@@ -49,36 +26,3 @@ class Deppy:
                     dot_graph.add_edge(f"{u}->{v}", v, key=k)
                     dot_graph.remove_edge(u, v, k)
         write_dot(dot_graph, filename)
-
-    def const(self, value: Any, secret: Optional[bool] = False, name: Optional[str] = None) -> Node:
-        name = name or "CONST" + str(self.const_counter)
-        node = self.node(lambda: value, name=name, secret=secret)
-        self.const_counter += 1
-        return node
-
-    def secret(self, value: Any, name: Optional[str] = None) -> Node:
-        return self.const(value, secret=True, name=name)
-
-    @classmethod
-    def from_dict(cls, d: dict) -> 'Deppy':
-        deppy = cls()
-        nodes = {}
-        for name, value in d["constants"].items():
-            node = deppy.const(value, name=name)
-            nodes[name] = node
-        for name, value in d["secrets"].items():
-            node = deppy.secret(value, name=name)
-            nodes[name] = node
-        for name, value in d["nodes"].items():
-            kwargs = value.copy()
-            kwargs["name"] = name
-            kwargs.pop("dependencies", None)
-            node = deppy.node(**kwargs)
-            nodes[name] = node
-        for name, value in d["nodes"].items():
-            node = nodes[name]
-            for in_edge in value.get("dependencies", []):
-                dependency = nodes[in_edge["node"]]
-                name = in_edge.get("name", in_edge["node"])
-                deppy.edge(dependency, node, name, loop=in_edge.get("loop", False), extractor=in_edge.get("extractor"))
-        return deppy
