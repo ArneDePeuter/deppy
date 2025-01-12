@@ -21,8 +21,6 @@ class Deppy:
         for node in self.graph.nodes:
             for u, v, k, d in self.graph.edges(node, keys=True, data=True):
                 if d["loop"]:
-                    dot_graph.add_node(f"{u}->{v}", shape="circle", label=k)
-                    dot_graph.add_edge(u, f"{u}->{v}", key=k)
-                    dot_graph.add_edge(f"{u}->{v}", v, key=k)
-                    dot_graph.remove_edge(u, v, k)
+                    d = {"color": "red", "style": "bold", "penwidth": 2, "arrowhead": "diamond"}
+                    dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
