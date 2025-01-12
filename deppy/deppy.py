@@ -15,7 +15,7 @@ class Deppy:
         self.executor = Executor(self.graph)
         self.execute = self.executor.execute
 
-    def dot(self, filename: str) -> None:
+    def dot(self, filename: str) -> None:  # pragma: no cover
         from networkx.drawing.nx_pydot import write_dot
         dot_graph = self.graph.copy()
         for node in self.graph.nodes:

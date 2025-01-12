@@ -57,7 +57,7 @@ class Scope(dict):
     def __hash__(self) -> int:
         return id(self)
 
-    def dot(self, filename: str, ignore_secret: Optional[bool] = False, max_label_size: int = 10) -> None:
+    def dot(self, filename: str, ignore_secret: Optional[bool] = False, max_label_size: int = 10) -> None:  # pragma: no cover
         import pydot
 
         graph = pydot.Dot(graph_type='digraph')
