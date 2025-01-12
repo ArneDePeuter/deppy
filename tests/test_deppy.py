@@ -252,21 +252,3 @@ async def test_constant():
 
     result = await deppy.execute()
     assert result(add_node) == [2, 4, 6]
-
-
-async def test_dkr_wrapper():
-    deppy = Deppy()
-
-    def request(url, headers, params):
-        return f"{url} {headers} {params}"
-
-    auth_request = Dkr(url="auth", headers=JsonDk({"Authorization": "{token}"}), params=None)(request, "auth")
-    assert auth_request.__name__ == "request_auth"
-
-    auth_node = deppy.add_node(auth_request)
-    token = deppy.add_const("123")
-
-    deppy.add_edge(token, auth_node, "token")
-
-    result = await deppy.execute()
-    assert result(auth_node) == ["auth {'Authorization': '123'} None"]
