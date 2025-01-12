@@ -2,6 +2,8 @@ import asyncio
 from typing import Dict, Any, List, Sequence, Iterable, Optional
 from networkx import MultiDiGraph
 from tqdm.asyncio import tqdm
+from contextlib import contextmanager
+
 
 from .node import Node
 from .scope import Scope
@@ -13,6 +15,12 @@ class Executor:
         self.graph = graph
         self.flow_graph = None
         self.pbar = None
+
+    @contextmanager
+    def update_pbar(self, new_nodes: int) -> None:
+        self.pbar.total += new_nodes
+        yield
+        self.pbar.update(new_nodes)
 
     async def execute_successors(self, node: Node, scopes: Iterable[Scope], work_graph: MultiDiGraph) -> None:
         successors = self.flow_graph.successors(node)
@@ -39,28 +47,26 @@ class Executor:
     async def solo_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
 
-        if self.pbar:
-            self.pbar.total += len(args_list)
-
         if node.loop_vars:
             scope = scope.birth()
             scope["scope_name"] = str(node)
 
-        await asyncio.gather(*[self.node_task(node, scope, single_args, work_graph.copy()) for single_args in args_list])
-
+        task = asyncio.gather(*[self.node_task(node, scope, single_args, work_graph.copy()) for single_args in args_list])
         if self.pbar:
-            self.pbar.update(len(args_list))
+            with self.update_pbar(len(args_list)):
+                await task
+        else:
+            await task
 
     async def team_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
 
+        task = asyncio.gather(*[node(**single_args) for single_args in args_list])
         if self.pbar:
-            self.pbar.total += len(args_list)
-
-        results = await asyncio.gather(*[node(**single_args) for single_args in args_list])
-
-        if self.pbar:
-            self.pbar.update(len(args_list))
+            with self.update_pbar(len(args_list)):
+                results = await task
+        else:
+            results = await task
 
         scopes = set()
         if not node.loop_vars:
@@ -112,9 +118,9 @@ class Executor:
         qualified_nodes = [node for node in work_graph if work_graph.in_degree(node) == 0]
 
         if with_pbar:
-            with tqdm(total=1, desc="Executing Deppy Graph", unit="node") as self.pbar:
+            with tqdm(total=len(qualified_nodes), desc="Executing Deppy Graph", unit="node") as self.pbar:
                 await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
-                self.pbar.total -= 1
+                self.pbar.update(len(qualified_nodes))
             self.pbar = None
         else:
             await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
