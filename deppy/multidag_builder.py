@@ -30,8 +30,8 @@ class GraphBuilder:
         if not is_directed_acyclic_graph(self.graph):
             raise ValueError("Circular dependency detected in the graph!")
 
-    def add_output(self, node: Node, name: str, extractor: Optional[Callable[[Any], Any]], loop: Optional[bool] = False) -> Node:
-        node2 = self.add_node(func=extractor, name=name)
+    def add_output(self, node: Node, name: str, extractor: Optional[Callable[[Any], Any]], loop: Optional[bool] = False, secret: Optional[bool] = None) -> Node:
+        node2 = self.add_node(func=extractor, name=name, secret=node.secret or secret)
         # get the parameter name of the extractor function
         parameters = inspect.signature(extractor).parameters
         if len(parameters) != 1:
