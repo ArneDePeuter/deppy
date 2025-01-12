@@ -7,9 +7,10 @@ from deppy.wrappers import Dkr, JsonDk
 def test_deppy_register_node():
     deppy = Deppy()
 
-    @deppy.node
     def test_node():
         return "node_registered"
+
+    test_node = deppy.add_node(test_node)
 
     assert test_node in deppy.graph
     assert asyncio.run(deppy.execute()) == {test_node: "node_registered"}
@@ -18,15 +19,15 @@ def test_deppy_register_node():
 async def test_deppy_execute_graph():
     deppy = Deppy()
 
-    @deppy.node
     def node1():
         return "node1_result"
 
-    @deppy.node
     def node2(dep):
         return f"node2_result: {dep}"
 
-    node2.dep(node1)
+    node1 = deppy.add_node(node1)
+    node2 = deppy.add_node(node2)
+    deppy.add_edge(node1, node2, "dep")
 
     result = await deppy.execute()
     assert result == {node1: "node1_result", node2: "node2_result: node1_result"}
@@ -47,15 +48,15 @@ async def test_unique_scope_upon_loop():
 
     deppy = Deppy()
 
-    l_node = deppy.node(l)
-    item1_node = deppy.node(item1)
-    item2_node = deppy.node(item2)
-    item3_node = deppy.node(item3)
+    l_node = deppy.add_node(l)
+    item1_node = deppy.add_node(item1)
+    item2_node = deppy.add_node(item2)
+    item3_node = deppy.add_node(item3)
 
-    item1_node.data(l_node, loop=True)
-    item2_node.data(item1_node)
-    item3_node.data1(item1_node)
-    item3_node.data2(item2_node)
+    deppy.add_edge(l_node, item1_node, "data", loop=True)
+    deppy.add_edge(item1_node, item2_node, "data")
+    deppy.add_edge(item1_node, item3_node, "data1")
+    deppy.add_edge(item2_node, item3_node, "data2")
 
     result = await deppy.execute()
 
@@ -74,11 +75,12 @@ async def test_loopmethod_zip():
 
     deppy = Deppy()
 
-    l1_node = deppy.node(l1)
-    l2_node = deppy.node(l2)
-    item1_node = deppy.node(item1, loop_strategy=zip)
+    l1_node = deppy.add_node(l1)
+    l2_node = deppy.add_node(l2)
+    item1_node = deppy.add_node(item1, loop_strategy=zip)
 
-    item1_node.data1(l1_node, loop=True).data2(l2_node, loop=True)
+    deppy.add_edge(l1_node, item1_node, "data1", loop=True)
+    deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
     result = await deppy.execute()
     assert result(item1_node) == [(1, "a"), (2, "b"), (3, "c")]
@@ -96,17 +98,18 @@ async def test_loopmethod_cartesian():
 
     deppy = Deppy()
 
-    l1_node = deppy.node(l1)
-    l2_node = deppy.node(l2)
-    item1_node = deppy.node(item1, loop_strategy=product)
+    l1_node = deppy.add_node(l1)
+    l2_node = deppy.add_node(l2)
+    item1_node = deppy.add_node(item1, loop_strategy=product)
 
-    item1_node.data1(l1_node, loop=True).data2(l2_node, loop=True)
+    deppy.add_edge(l1_node, item1_node, "data1", loop=True)
+    deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
     result = await deppy.execute()
     assert result(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
 
 
-async def test_extractor():
+async def test_output():
     deppy = Deppy()
 
     async def lists():
@@ -115,10 +118,13 @@ async def test_extractor():
     async def combine(val1, val2):
         return f"{val1}-{val2}"
 
-    lists_node = deppy.node(lists)
-    combine_node = deppy.node(combine, loop_strategy=zip)
+    lists_node = deppy.add_node(lists)
+    lists_node_output_1 = deppy.add_output(lists_node, "val1", extractor=lambda x: x[0])
+    lists_node_output_2 = deppy.add_output(lists_node, "val2", extractor=lambda x: x[1])
+    combine_node = deppy.add_node(combine, loop_strategy=zip)
 
-    combine_node.val1(lists_node, loop=True, extractor=lambda x: x[0]).val2(lists_node, loop=True, extractor=lambda x: x[1])
+    deppy.add_edge(lists_node_output_1, combine_node, "val1", loop=True)
+    deppy.add_edge(lists_node_output_2, combine_node, "val2", loop=True)
 
     result = await deppy.execute()
     assert result(combine_node) == ["1-a", "2-b"]
@@ -144,12 +150,12 @@ async def test_solo_race():
 
     deppy = Deppy()
 
-    list1_node = deppy.node(list1)
-    process_node = deppy.node(process, team_race=False)
-    process_again_node = deppy.node(process_again)
+    list1_node = deppy.add_node(list1)
+    process_node = deppy.add_node(process, team_race=False)
+    process_again_node = deppy.add_node(process_again)
 
-    process_node.data(list1_node, loop=True)
-    process_again_node.data(process_node)
+    deppy.add_edge(list1_node, process_node, "data", loop=True)
+    deppy.add_edge(process_node, process_again_node, "data")
 
     result = await deppy.execute()
 
@@ -174,9 +180,10 @@ async def test_solo_race():
 async def test_node_execution_without_dependencies():
     deppy = Deppy()
 
-    @deppy.node
-    async def test_node():
+    async def test():
         return "result"
+
+    test_node = deppy.add_node(test)
 
     result = await deppy.execute()
     assert result == {test_node: "result"}
@@ -185,49 +192,22 @@ async def test_node_execution_without_dependencies():
 async def test_node_with_dependencies():
     deppy = Deppy()
 
-    @deppy.node
     async def dependency():
         return "dependency_result"
 
-    @deppy.node
-    async def test_node(dep):
+    async def test(dep):
         return f"node_result: {dep}"
 
-    test_node.dep(dependency)
+    dependency_node = deppy.add_node(dependency)
+    test_node = deppy.add_node(test)
+
+    deppy.add_edge(dependency_node, test_node, "dep")
 
     result = await deppy.execute()
-    assert result == {dependency: "dependency_result", test_node: "node_result: dependency_result"}
-
-
-async def test_node_with_loop_variables():
-    deppy = Deppy()
-
-    @deppy.node
-    async def loop1():
-        return [1, 2]
-
-    @deppy.node
-    async def loop2():
-        return ["a", "b"]
-
-    @deppy.node
-    async def test_node(val1, val2):
-        return f"{val1}-{val2}"
-
-    test_node.val1(loop1, loop=True)
-    test_node.val2(loop2, loop=True)
-
-    result = await deppy.execute()
-    assert result(test_node) == ["1-a", "1-b", "2-a", "2-b"]
-    assert result(loop1) == [[1, 2]]
-    assert result(loop2) == [["a", "b"]]
-
-    assert len(result.children[0].children) == 4
+    assert result == {dependency_node: "dependency_result", test_node: "node_result: dependency_result"}
 
 
 async def test_ignore_result():
-    deppy = Deppy()
-
     async def l():
         return [2, 4, 3]
 
@@ -237,12 +217,14 @@ async def test_ignore_result():
     def increment(data):
         return data + 1
 
-    l_node = deppy.node(l)
-    filter_node = deppy.node(filter_uneven)
-    increment_node = deppy.node(increment)
+    deppy = Deppy()
 
-    filter_node.data(l_node, loop=True)
-    increment_node.data(filter_node)
+    l_node = deppy.add_node(l)
+    filter_node = deppy.add_node(filter_uneven)
+    increment_node = deppy.add_node(increment)
+
+    deppy.add_edge(l_node, filter_node, "data", loop=True)
+    deppy.add_edge(filter_node, increment_node, "data")
 
     result = await deppy.execute()
     assert result(increment_node) == [3, 5]
@@ -256,16 +238,17 @@ async def test_ignore_result():
 
 
 async def test_constant():
-    deppy = Deppy()
-
     async def add(val1, val2):
         return val1 + val2
 
-    l1 = deppy.const([1, 2, 3])
-    l2 = deppy.const([1, 2, 3])
-    add_node = deppy.node(add, loop_strategy=zip)
+    deppy = Deppy()
 
-    add_node.val1(l1, loop=True).val2(l2, loop=True)
+    l1 = deppy.add_const([1, 2, 3])
+    l2 = deppy.add_const([1, 2, 3])
+    add_node = deppy.add_node(add, loop_strategy=zip)
+
+    deppy.add_edge(l1, add_node, "val1", loop=True)
+    deppy.add_edge(l2, add_node, "val2", loop=True)
 
     result = await deppy.execute()
     assert result(add_node) == [2, 4, 6]
@@ -280,10 +263,10 @@ async def test_dkr_wrapper():
     auth_request = Dkr(url="auth", headers=JsonDk({"Authorization": "{token}"}), params=None)(request, "auth")
     assert auth_request.__name__ == "request_auth"
 
-    auth_node = deppy.node(auth_request)
-    token = deppy.const("123")
+    auth_node = deppy.add_node(auth_request)
+    token = deppy.add_const("123")
 
-    auth_node.token(token)
+    deppy.add_edge(token, auth_node, "token")
 
     result = await deppy.execute()
     assert result(auth_node) == ["auth {'Authorization': '123'} None"]
