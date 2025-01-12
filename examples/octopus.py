@@ -1,4 +1,4 @@
-from typing import Callable, TypeVar, ParamSpec, Union, Any, Awaitable
+from typing import Callable, TypeVar, ParamSpec, Union, Any, Awaitable, Iterable
 from functools import wraps
 import httpx
 import os
@@ -6,6 +6,8 @@ import json
 import asyncio
 from deppy import Deppy, IgnoreResult
 from deppy.wrappers.dkr import Dkr, JsonDk, StringDk
+from deppy.wrappers.stated_kwargs import StatedKwargs
+from datetime import datetime
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -15,9 +17,23 @@ def request_wrapper(function: Callable[P, Awaitable[httpx.Response]]) -> Callabl
     @wraps(function)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
         result = await function(*args, **kwargs)
-        if result.status_code == 200:
+        result.raise_for_status()
+        return result.json()
+
+    return wrapper
+
+
+def ignore_on_status_codes(function: Callable[P, Awaitable[httpx.Response]], status_codes: Iterable[int]) -> Callable[P, Union[IgnoreResult, Any]]:
+    @wraps(function)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
+        try:
+            result = await function(*args, **kwargs)
             return result.json()
-        return IgnoreResult(reason=result.status_code, data=result.text)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in status_codes:
+                return IgnoreResult()
+            raise
+
     return wrapper
 
 
@@ -26,7 +42,9 @@ def octopus(
         software_house_uuid: str,
         user: str,
         password: str,
-        locale_id: int
+        locale_id: int,
+        initial_modified_timestamp: str,
+        state: StatedKwargs
 ) -> Deppy:
     client.request = request_wrapper(client.request)
 
@@ -47,6 +65,21 @@ def octopus(
         headers=JsonDk({"Token": "{token}"}),
         params=JsonDk({"dossierId": "{dossier_id}", "localeId": "{locale_id}"})
     )(client.post, "dossier_token_info")
+
+    modified_accounts_request = ignore_on_status_codes(
+        state.stated_kwarg(
+            name="modified_timestamp",
+            initial_value=initial_modified_timestamp,
+            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            keys=["dossier_id"],
+            func=Dkr(
+                url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
+                headers=JsonDk({"dossierToken": "{dossier_token}"}),
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+            )(client.get, "modified_accounts")
+        ),
+        {404}
+    )
 
     bookyears_request = Dkr(
         url=StringDk("/dossiers/{dossier_id}/bookyears"),
@@ -103,6 +136,7 @@ async def main():
         result.dot("result.dot")
         with open("result.json", "w") as f:
             f.write(json.dumps(result.dump(), indent=4))
+
 
 if __name__ == "__main__":
     asyncio.run(main())

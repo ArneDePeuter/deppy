@@ -152,11 +152,11 @@ def test_stated_kwarg_from_prev_state(stated_kwargs_instance):
 
     with stated_kwargs_instance:
         test_function()
-        current_value = stated_kwargs_instance._get("x")
+        current_value = stated_kwargs_instance._get(test_function, "x")
         assert current_value == 1
 
         test_function()
-        current_value = stated_kwargs_instance._get("x")
+        current_value = stated_kwargs_instance._get(test_function, "x")
         assert current_value == 2
 
 
@@ -292,9 +292,9 @@ async def test_async_stated_kwarg_from_prev_state(stated_kwargs_instance):
 
     with stated_kwargs_instance:
         await test_function()
-        current_value = stated_kwargs_instance._get("x")
+        current_value = stated_kwargs_instance._get(test_function, "x")
         assert current_value == 1
 
         await test_function()
-        current_value = stated_kwargs_instance._get("x")
+        current_value = stated_kwargs_instance._get(test_function, "x")
         assert current_value == 2
