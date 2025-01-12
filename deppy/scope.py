@@ -16,20 +16,20 @@ class Scope(dict):
 
     def __call__(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
         values = []
-        val = self.get(key)
-        if val:
-            if ignored_results is None:
-                values.append(val)
-            elif ignored_results and isinstance(val, IgnoreResult):
-                values.append(val)
-            elif not ignored_results and not isinstance(val, IgnoreResult):
-                values.append(val)
+        val = self.get(key, self.not_found)
+        if val is not self.not_found and (
+            ignored_results is None
+            or (ignored_results and isinstance(val, IgnoreResult))
+            or (not ignored_results and not isinstance(val, IgnoreResult))
+        ):
+            values.append(val)
+
         for child in self.children:
             values.extend(child(key, ignored_results=ignored_results))
         return values
 
     def __getitem__(self, item) -> Any:
-        val = self.get(item, self.not_found)
+        val = super().get(item, self.not_found)
         if val is not self.not_found:
             return val
         if self.parent is not None:
@@ -37,17 +37,16 @@ class Scope(dict):
         raise KeyError(item)
 
     def dump(self, ignore_secret: Optional[bool] = False) -> Dict[str, Any]:
-        cp: Dict[str, Any] = {}
-        for key, value in self.items():
-            if isinstance(key, Node) and key.secret and not ignore_secret:
-                value = "***"
-            cp[str(key)] = value
-        if len(self.children) > 0:
-            cp["children"] = [child.dump(ignore_secret) for child in self.children]
-        return cp
+        return {
+            str(key): "***" if isinstance(key, Node) and key.secret and not ignore_secret else value
+            for key, value in self.items()
+        } | (
+            {"children": [child.dump(ignore_secret) for child in self.children]}
+            if self.children else {}
+        )
 
     def __str__(self) -> str:
-        return str(self.dump())
+        return json.dumps(self.dump(), indent=2)
 
     def birth(self) -> 'Scope':
         child = Scope(self)
@@ -63,17 +62,16 @@ class Scope(dict):
         graph = pydot.Dot(graph_type='digraph')
 
         def add_node(scope):
-            d = scope.dump(ignore_secret)
-            for k, v in d.items():
-                if len(str(v)) > max_label_size:
-                    d[k] = str(v)[:max_label_size] + "..."
-            label = json.dumps(d, indent=2)
-            label = label.replace('"', '').replace("'", "")
+            data = scope.dump(ignore_secret)
+            truncated = {
+                k: (str(v)[:max_label_size] + "...") if len(str(v)) > max_label_size else v
+                for k, v in data.items()
+            }
+            label = json.dumps(truncated, indent=2).replace('"', '').replace("'", "")
             node = pydot.Node(id(scope), label=label)
             graph.add_node(node)
             for child in scope.children:
-                child_node = add_node(child)
-                graph.add_edge(pydot.Edge(node, child_node))
+                graph.add_edge(pydot.Edge(node, add_node(child)))
             return node
 
         add_node(self)
