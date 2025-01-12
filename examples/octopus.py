@@ -28,7 +28,7 @@ def ignore_on_status_codes(function: Callable[P, Awaitable[httpx.Response]], sta
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
         try:
             result = await function(*args, **kwargs)
-            return result.json()
+            return result
         except httpx.HTTPStatusError as e:
             if e.response.status_code in status_codes:
                 return IgnoreResult()
@@ -44,11 +44,10 @@ def octopus(
         password: str,
         locale_id: int,
         initial_modified_timestamp: str,
-        state: StatedKwargs
+        stated_kwargs: StatedKwargs
 ) -> Deppy:
     client.request = request_wrapper(client.request)
 
-    # create all the requests
     auth_request = Dkr(
         url="/authentication",
         headers=JsonDk({"softwareHouseUuid": "{software_house_uuid}"}),
@@ -66,25 +65,81 @@ def octopus(
         params=JsonDk({"dossierId": "{dossier_id}", "localeId": "{locale_id}"})
     )(client.post, "dossier_token_info")
 
-    modified_accounts_request = ignore_on_status_codes(
-        state.stated_kwarg(
-            name="modified_timestamp",
-            initial_value=initial_modified_timestamp,
-            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            keys=["dossier_id"],
-            func=Dkr(
-                url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
-                headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
-            )(client.get, "modified_accounts")
-        ),
-        {404}
-    )
+    accounts_request = Dkr(
+        url=StringDk("/dossiers/{dossier_id}/accounts"),
+        headers=JsonDk({"dossierToken": "{dossier_token}"}),
+        params=JsonDk({"bookyearId": "{bookyear_id}"})
+    )(client.get, "accounts")
+
+    products_request = Dkr(
+        url=StringDk("/dossiers/{dossier_id}/products"),
+        headers=JsonDk({"dossierToken": "{dossier_token}"})
+    )(client.get, "products")
+
+    vatcodes_request = Dkr(
+        url=StringDk("/dossiers/{dossier_id}/vatcodes"),
+        headers=JsonDk({"dossierToken": "{dossier_token}"})
+    )(client.get, "vatcodes")
+
+    relations_request = Dkr(
+        url=StringDk("/dossiers/{dossier_id}/relations"),
+        headers=JsonDk({"dossierToken": "{dossier_token}"})
+    )(client.get, "relations")
+
+    product_groups_request = Dkr(
+        url=StringDk("/dossiers/{dossier_id}/productgroups"),
+        headers=JsonDk({"dossierToken": "{dossier_token}"})
+    )(client.get, "product_groups")
 
     bookyears_request = Dkr(
         url=StringDk("/dossiers/{dossier_id}/bookyears"),
         headers=JsonDk({"dossierToken": "{dossier_token}"})
     )(client.get, "bookyears")
+
+    modified_accounts_request = ignore_on_status_codes(
+        stated_kwargs(
+            Dkr(
+                url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
+                headers=JsonDk({"dossierToken": "{dossier_token}"}),
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+            )(client.get, "modified_accounts"),
+            name="modified_timestamp",
+            initial_value=initial_modified_timestamp,
+            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            keys=["dossier_id"],
+        ),
+        {404}
+    )
+
+    modified_bookings_request = ignore_on_status_codes(
+        stated_kwargs(
+            Dkr(
+                url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
+                headers=JsonDk({"dossierToken": "{dossier_token}"}),
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"})
+            )(client.get, "modified_bookings"),
+            name="modified_timestamp",
+            initial_value=initial_modified_timestamp,
+            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            keys=["dossier_id"],
+        ),
+        {404}
+    )
+
+    modified_relations_request = ignore_on_status_codes(
+        stated_kwargs(
+            Dkr(
+                url=StringDk("/dossiers/{dossier_id}/relations/modified"),
+                headers=JsonDk({"dossierToken": "{dossier_token}"}),
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+            )(client.get, "modified_relations"),
+            name="modified_timestamp",
+            initial_value=initial_modified_timestamp,
+            produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            keys=["dossier_id"],
+        ),
+        {404}
+    )
 
     # create the Deppy graph
     deppy = Deppy()
@@ -106,6 +161,16 @@ def octopus(
     dossier_token_node = deppy.add_output(dossier_token_info_node, "dossier_token", lambda data: data["Dossiertoken"])
 
     bookyears_node = deppy.add_node(bookyears_request)
+    bookyear_id_node = deppy.add_output(bookyears_node, "bookyear_id", lambda bookyear: bookyear["bookyearKey"]["id"], loop=True)
+
+    accounts_node = deppy.add_node(accounts_request)
+    products_node = deppy.add_node(products_request)
+    vatcodes_node = deppy.add_node(vatcodes_request)
+    relations_node = deppy.add_node(relations_request)
+    product_groups_node = deppy.add_node(product_groups_request)
+    modified_accounts_node = deppy.add_node(modified_accounts_request)
+    modified_bookings_node = deppy.add_node(modified_bookings_request)
+    modified_relations_node = deppy.add_node(modified_relations_request)
 
     # create all edges
     deppy.add_edge(software_house_uuid_node, auth_node, "software_house_uuid")
@@ -117,25 +182,49 @@ def octopus(
     deppy.add_edge(locale_id_node, dossier_token_info_node, "locale_id")
     deppy.add_edge(dossier_token_node, bookyears_node, "dossier_token")
     deppy.add_edge(dossier_id_node, bookyears_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, accounts_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, accounts_node, "dossier_id")
+    deppy.add_edge(bookyear_id_node, accounts_node, "bookyear_id")
+    deppy.add_edge(dossier_token_node, products_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, products_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, vatcodes_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, vatcodes_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, relations_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, relations_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, product_groups_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, product_groups_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, modified_accounts_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, modified_accounts_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, modified_bookings_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, modified_bookings_node, "dossier_id")
+    deppy.add_edge(dossier_token_node, modified_relations_node, "dossier_token")
+    deppy.add_edge(dossier_id_node, modified_relations_node, "dossier_id")
 
     return deppy
 
 
 async def main():
     async with httpx.AsyncClient(base_url="https://service.inaras.be/octopus-rest-api/v1") as client:
+        stated_kwargs = StatedKwargs()
         deppy = octopus(
             client,
             os.getenv("SOFTWARE_HOUSE_UUID"),
             os.getenv("USER"),
             os.getenv("PASSWORD"),
-            1
+            1,
+            "2000-01-01 00:00:00.000",
+            stated_kwargs
         )
         deppy.dot("octopus.dot")
 
-        result = await deppy.execute()
+        print("Executing the graph...")
+        with stated_kwargs:
+            result = await deppy.execute()
+        print("Execution finished.")
+
         result.dot("result.dot")
         with open("result.json", "w") as f:
-            f.write(json.dumps(result.dump(), indent=4))
+            f.write(json.dumps(result.dump(), indent=4, default=str))
 
 
 if __name__ == "__main__":
