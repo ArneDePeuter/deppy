@@ -2,7 +2,7 @@ import os
 import json
 import asyncio
 
-from deppy.helpers.wrappers import StatedKwargs
+from deppy.helpers.wrappers.stated_kwargs import StatedKwargs
 
 from octopus_api import OctopusApi
 from octopus_deppy import OctopusDeppy
