@@ -40,10 +40,10 @@ class StatedKwargs:
     def __exit__(self, exc_type, exc_value, traceback):
         self._save()
 
-    def _manage_state(self, name: str, produce_function: Callable, initial_value: Any, key: Union[Iterable[str], None], kwargs: Dict[str, Any]):
+    def _manage_state(self, name: str, produce_function: Callable, initial_value: Any, keys: Union[Iterable[str], None], kwargs: Dict[str, Any]):
         state_key = name
-        if key:
-            state_key += ":" + ":".join(str(kwargs[k]) for k in key if k in kwargs)
+        if keys:
+            state_key += ":" + ":".join(str(kwargs[k]) for k in keys if k in kwargs)
 
         if state_key not in self.state:
             if initial_value is not_set:
@@ -51,7 +51,7 @@ class StatedKwargs:
             else:
                 self._set(state_key, initial_value)
 
-        return self._get(state_key)
+        return self._get(state_key), state_key
 
     def _update_state(self, state_key: str, produce_function: Callable, result: Any, from_result: bool, from_prev_state: bool):
         if from_result:
@@ -68,19 +68,21 @@ class StatedKwargs:
         initial_value: Optional[Any] = not_set,
         from_result: Optional[bool] = False,
         from_prev_state: Optional[bool] = False,
-        key: Optional[Iterable[str]] = None,
+        keys: Optional[Iterable[str]] = None,
     ):
         def decorator(func):
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
-                state_key = self._manage_state(name, produce_function, initial_value, key, kwargs)
+                val, state_key = self._manage_state(name, produce_function, initial_value, keys, kwargs)
+                kwargs[name] = val
                 result = func(*args, **kwargs)
                 self._update_state(state_key, produce_function, result, from_result, from_prev_state)
                 return result
 
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                state_key = self._manage_state(name, produce_function, initial_value, key, kwargs)
+                val, state_key = self._manage_state(name, produce_function, initial_value, keys, kwargs)
+                kwargs[name] = val
                 result = await func(*args, **kwargs)
                 self._update_state(state_key, produce_function, result, from_result, from_prev_state)
                 return result
