@@ -15,7 +15,7 @@ not_set = NotSetType()
 class StatedKwargs:
     def __init__(self, state_file: str = "state.json"):
         self.state_file_path = Path(state_file)
-        self.state = self._load_state()
+        self.state = {}
 
     def _load_state(self):
         if self.state_file_path.exists():
@@ -34,6 +34,7 @@ class StatedKwargs:
         self.state[key] = value
 
     def __enter__(self):
+        self.state = self._load_state()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
