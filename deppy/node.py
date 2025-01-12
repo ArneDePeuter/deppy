@@ -5,6 +5,15 @@ from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Option
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
 
 
+class NodeExecutionError(Exception):
+    def __init__(self, node, *args, **kwargs):
+        self.node = node
+        super().__init__(*args, **kwargs)
+
+    def __str__(self):
+        return f"Error executing node {self.node}"
+
+
 class Node:
     def __init__(
             self,
@@ -24,11 +33,14 @@ class Node:
         self.secret = secret
 
     async def __call__(self, **kwargs):
-        if asyncio.iscoroutinefunction(self.func):
-            return await self.func(**kwargs)
-        elif self.to_thread:
-            return await asyncio.to_thread(self.func, **kwargs)
-        return self.func(**kwargs)
+        try:
+            if asyncio.iscoroutinefunction(self.func):
+                return await self.func(**kwargs)
+            elif self.to_thread:
+                return await asyncio.to_thread(self.func, **kwargs)
+            return self.func(**kwargs)
+        except Exception as e:
+            raise NodeExecutionError(self) from e
 
     def __repr__(self):
         return f"<Node {self.name}>"
