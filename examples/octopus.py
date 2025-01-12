@@ -16,6 +16,7 @@ T = TypeVar("T")
 def request_wrapper(function: Callable[P, Awaitable[httpx.Response]]) -> Callable[P, Union[IgnoreResult, Any]]:
     @wraps(function)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
+        await asyncio.sleep(1)
         result = await function(*args, **kwargs)
         result.raise_for_status()
         return result.json()
@@ -208,10 +209,8 @@ async def main():
         )
         deppy.dot("octopus.dot")
 
-        print("Executing the graph...")
         with stated_kwargs:
             result = await deppy.execute()
-        print("Execution finished.")
 
         result.dot("result.dot")
         with open("result.json", "w") as f:
