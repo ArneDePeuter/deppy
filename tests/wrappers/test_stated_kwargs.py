@@ -1,6 +1,6 @@
 import pytest
 import os
-from deppy.wrappers.stated_kwargs import StatedKwargs
+from deppy.helpers.wrappers import StatedKwargs
 
 
 @pytest.fixture

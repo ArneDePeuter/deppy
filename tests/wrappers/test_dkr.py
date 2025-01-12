@@ -1,4 +1,4 @@
-from deppy.wrappers.dkr import StringDk, MappingDk, IterDk, JsonDk, Dkr
+from deppy.helpers.wrappers import StringDk, MappingDk, IterDk, JsonDk, Dkr
 
 
 def test_string_dk_resolution():

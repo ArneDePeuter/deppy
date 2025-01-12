@@ -1,48 +1,14 @@
-from typing import Callable, TypeVar, ParamSpec, Union, Any, Awaitable, Iterable
-from functools import wraps
-import httpx
-from deppy import IgnoreResult
-from deppy.wrappers.dkr import Dkr, JsonDk, StringDk
-from deppy.wrappers.stated_kwargs import StatedKwargs
+from deppy.helpers.wrappers.dkr import Dkr, JsonDk, StringDk
+from deppy.helpers.wrappers.stated_kwargs import StatedKwargs
+from deppy.helpers.asyncclient import AsyncClient
 from datetime import datetime
 
-P = ParamSpec("P")
-T = TypeVar("T")
 
-
-def request_wrapper(function: Callable[P, Awaitable[httpx.Response]]) -> Callable[P, Union[IgnoreResult, Any]]:
-    @wraps(function)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
-        result = await function(*args, **kwargs)
-        result.raise_for_status()
-        return result.json()
-
-    return wrapper
-
-
-def ignore_on_status_codes(function: Callable[P, Awaitable[httpx.Response]], status_codes: Iterable[int]) -> Callable[P, Union[IgnoreResult, Any]]:
-    @wraps(function)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
-        try:
-            result = await function(*args, **kwargs)
-            return result
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code in status_codes:
-                return IgnoreResult()
-            raise
-
-    return wrapper
-
-
-class OctopusApi(httpx.AsyncClient):
-    def __init__(
-            self,
-            base_url: str,
-            initial_modified_timestamp: str,
-            stated_kwargs: StatedKwargs
-    ):
+class OctopusApi(AsyncClient):
+    def __init__(self, base_url: str, initial_modified_timestamp: str, stated_kwargs: StatedKwargs):
+        self.stated_kwargs = stated_kwargs
+        self.initial_modified_timestamp = initial_modified_timestamp
         super().__init__(base_url=base_url)
-        self.request = request_wrapper(self.request)
 
         self.auth_request = Dkr(
             url="/authentication",
@@ -92,19 +58,7 @@ class OctopusApi(httpx.AsyncClient):
             headers=JsonDk({"dossierToken": "{dossier_token}"})
         )(self.get, "bookyears")
 
-        def modified_request(request):
-            return ignore_on_status_codes(
-                stated_kwargs(
-                    request,
-                    name="modified_timestamp",
-                    initial_value=initial_modified_timestamp,
-                    produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-                    keys=["dossier_id"],
-                ),
-                {404}
-            )
-
-        self.modified_accounts_request = modified_request(
+        self.modified_accounts_request = self.create_modified_request(
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
@@ -112,7 +66,7 @@ class OctopusApi(httpx.AsyncClient):
             )(self.get, "modified_accounts")
         )
 
-        self.modified_bookings_request = modified_request(
+        self.modified_bookings_request = self.create_modified_request(
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
@@ -120,10 +74,22 @@ class OctopusApi(httpx.AsyncClient):
             )(self.get, "modified_bookings")
         )
 
-        self.modified_relations_request = modified_request(
+        self.modified_relations_request = self.create_modified_request(
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/relations/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
                 params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
             )(self.get, "modified_relations")
+        )
+
+    def create_modified_request(self, request):
+        return self.ignore_on_status_codes(
+            self.stated_kwargs(
+                request,
+                name="modified_timestamp",
+                initial_value=self.initial_modified_timestamp,
+                produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                keys=["dossier_id"],
+            ),
+            {404}
         )
