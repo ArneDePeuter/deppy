@@ -40,7 +40,7 @@ class Secret:
         self.value = value
 
 
-class DeppyBluePrintMeta(type):
+class DeppyBlueprintMeta(type):
     def __new__(cls, name, bases, dct):
         nodes = {}
         outputs = {}
@@ -74,7 +74,7 @@ class DeppyBluePrintMeta(type):
         return super().__new__(cls, name, bases, dct)
 
 
-class DeppyBluePrint(Deppy, metaclass=DeppyBluePrintMeta):
+class DeppyBlueprint(Deppy, metaclass=DeppyBlueprintMeta):
     def __init__(self, **kwargs):
         super().__init__(name=self.__class__.__name__)
 
