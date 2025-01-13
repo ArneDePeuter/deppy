@@ -44,7 +44,7 @@ class Executor:
                 work_graph.remove_node(node)
             successors = self.flow_graph.successors(node)
             qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
-            await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
+        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
 
     async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any], work_graph: MultiDiGraph) -> None:
         result = await node(**args)
