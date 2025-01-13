@@ -6,9 +6,7 @@ from deppy.blueprint import Const, Secret, Node, Blueprint, Output, Object
 class Octopus(Blueprint):
     api = Object(OctopusApi)
 
-    software_house_uuid = Secret()
-    user = Secret()
-    password = Secret()
+    software_house_uuid, user, password = Secret(), Secret(), Secret()
     locale_id = Const()
 
     auth = Node(api.auth_request, secret=True)
