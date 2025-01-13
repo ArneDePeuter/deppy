@@ -29,6 +29,7 @@ class Node:
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
         self.team_race = team_race
+        # its important for the deppyblueprint that __name__ is the first and only method that accesses func
         self.name = name or func.__name__
         self.secret = secret
 
