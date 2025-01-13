@@ -134,7 +134,7 @@ async def test_output():
 
 async def test_solo_race():
     async def list1():
-        return [1, 2]
+        return [0, 1]
 
     async def process(data):
         await asyncio.sleep(data)
@@ -158,7 +158,7 @@ async def test_solo_race():
 
     result = await deppy.execute()
 
-    assert result.query(process_again_node) == [6, 12]
+    assert result.query(process_again_node) == [0, 6]
 
     diff = entry_times[1] - entry_times[0]
     # branch diff is greater than 3 meaning one process started earlier than the other
@@ -169,7 +169,7 @@ async def test_solo_race():
     entry_times.clear()
     result = await deppy.execute()
 
-    assert result.query(process_again_node) == [6, 12]
+    assert result.query(process_again_node) == [0, 6]
 
     diff = entry_times[1] - entry_times[0]
     # processes started at the same time
