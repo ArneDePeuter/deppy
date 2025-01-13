@@ -110,7 +110,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
         super().__init__(name=self.__class__.__name__)
 
         object_map = {}
-        bp_to_node_map = {}
+        self.bp_to_node_map = {}
 
         for name, obj in self._objects.items():
             obj = obj.type(**(kwargs.get(name) or {}))
@@ -126,32 +126,32 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 node.func = obj
             node.name = name
             # these are always nodes and not blueprints
-            bp_to_node_map[node] = node
+            self.bp_to_node_map[node] = node
             self.graph.add_node(node)
 
         for name, output in self._outputs.items():
             bp = output
             output = self.add_output(output.node, name, output.extractor, output.loop, output.secret)
-            bp_to_node_map[bp] = output
+            self.bp_to_node_map[bp] = output
             setattr(self, name, output)
 
         for name, const in self._consts.items():
             bp = const
-            const = self.add_const(name, const.value or kwargs.get(name))
-            bp_to_node_map[bp] = const
+            const = self.add_const(const.value or kwargs.get(name), name)
+            self.bp_to_node_map[bp] = const
             setattr(self, name, const)
 
         for name, secret in self._secrets.items():
             bp = secret
-            secret = self.add_secret(name, secret.value or kwargs.get(name))
-            bp_to_node_map[bp] = secret
+            secret = self.add_secret(secret.value or kwargs.get(name), name)
+            self.bp_to_node_map[bp] = secret
             setattr(self, name, secret)
 
         for edge in self._edges:
             assert len(edge) == 3, "Edges must be tuples with min length of 3"
 
-            u = bp_to_node_map[edge[0]]
-            v = bp_to_node_map[edge[1]]
+            u = self.bp_to_node_map[edge[0]]
+            v = self.bp_to_node_map[edge[1]]
 
             self.add_edge(u, v, *(edge[2:]))
 

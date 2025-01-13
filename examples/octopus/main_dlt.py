@@ -1,4 +1,4 @@
-from deppy.helpers.DLT import deppy_to_source
+from deppy.helpers.DLT import blueprint_to_source
 from octopus import Octopus
 import dlt
 
@@ -11,8 +11,7 @@ def main():
         progress="log"
     )
 
-    octopus_deppy = Octopus()
-    source = deppy_to_source(octopus_deppy)
+    source = blueprint_to_source(Octopus)
     info = pipeline.run(source)
     print(info)
 

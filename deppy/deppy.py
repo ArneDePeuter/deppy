@@ -7,7 +7,7 @@ from .executor import Executor
 
 class Deppy:
     def __init__(self, name: Optional[str] = "Deppy") -> None:
-        self.name = name
+        self._name = name
 
         self.graph_builder = GraphBuilder()
         self.graph = self.graph_builder.graph
@@ -16,9 +16,6 @@ class Deppy:
         self.add_edge = self.graph_builder.add_edge
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
-        self.consts = self.graph_builder.consts
-        self.secrets = self.graph_builder.secrets
-        self.configure = self.graph_builder.configure
 
         self.executor = Executor(self.graph)
         self.execute = self.executor.execute
