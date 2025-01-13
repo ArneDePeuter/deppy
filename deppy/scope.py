@@ -11,10 +11,10 @@ class Scope(dict):
 
     def __init__(self, parent: Optional[dict] = None) -> None:
         self.parent = parent
-        self.children = []
+        self.children: list['Scope'] = []
         super().__init__()
 
-    def __call__(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
+    def query(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
         values = []
         val = self.get(key, self.not_found)
         if val is not self.not_found and (
@@ -25,7 +25,7 @@ class Scope(dict):
             values.append(val)
 
         for child in self.children:
-            values.extend(child(key, ignored_results=ignored_results))
+            values.extend(child.query(key, ignored_results=ignored_results))
         return values
 
     def __getitem__(self, item) -> Any:
