@@ -13,8 +13,8 @@ T = TypeVar("T")
 class GraphBuilder:
     def __init__(self, graph: Optional[MultiDiGraph] = None) -> None:
         self.graph = graph or MultiDiGraph()
-        self.consts = {}
-        self.secrets = {}
+        self.consts_count = 0
+        self.secrets_count = 0
 
         def add_wrapper(function: Callable[P, T]) -> Callable[P, Node]:
             @wraps(function)
@@ -49,26 +49,13 @@ class GraphBuilder:
         self.check()
 
     def add_const(self, value: Optional[str] = None, name: Optional[Any] = None) -> Node:
-        name = name or "CONST" + str(len(self.consts))
+        name = name or "CONST" + str(self.consts_count)
         node = self.add_node(func=lambda: value, name=name, secret=False)
-        self.consts[name] = node
+        self.consts_count += 1
         return node
 
     def add_secret(self, value: Optional[str] = None, name: Optional[Any] = None) -> Node:
-        name = name or "SECRET" + str(len(self.secrets))
+        name = name or "SECRET" + str(self.secrets_count)
         node = self.add_node(func=lambda: value, name=name, secret=True)
-        self.secrets[name] = node
+        self.secrets_count += 1
         return node
-
-    def configure(self, **kwargs: Dict[str, Any]):
-        def make_lambda(val):
-            # separate function for lambda creation to avoid late binding
-            return lambda: val
-
-        for key, value in kwargs.items():
-            if key in self.consts:
-                self.consts[key].func = make_lambda(value)
-            elif key in self.secrets:
-                self.secrets[key].func = make_lambda(value)
-            else:
-                raise ValueError(f"Unknown configuration key {key}")

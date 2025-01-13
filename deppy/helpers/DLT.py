@@ -6,14 +6,14 @@ import dlt
 from dlt.sources import DltResource, DltSource
 from dlt.common.configuration.resolve import resolve_configuration
 
-from deppy import Deppy, Scope
-from deppy.node import Node
+from deppy.blueprint import Node, Blueprint
+from deppy import Scope
+from deppy.node import Node as DeppyNode
+
+BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
 
 
-DeppySubclass = TypeVar("DeppySubclass", bound=Deppy)
-
-
-def create_spec(source_name: str, configs: Set[str], secrets: Set[str]) -> BaseConfiguration:
+def create_spec(source_name: str, configs: Set[str], secrets: Set[str], objects: Dict[str, Type[BaseConfiguration]]) -> Type[BaseConfiguration]:
     annotations: Dict[str, Any] = {}
     defaults: Dict[str, Any] = {}
     for config in configs:
@@ -22,37 +22,61 @@ def create_spec(source_name: str, configs: Set[str], secrets: Set[str]) -> BaseC
     for secret in secrets:
         annotations[secret] = TSecretValue
         defaults[secret] = None
+    for object_name, object_spec in objects.items():
+        annotations[object_name] = object_spec
+        defaults[object_name] = None
     cls_dict = {"__annotations__": annotations}
     cls_dict.update(defaults)
     new_class = type(f"Config{source_name}", (BaseConfiguration,), cls_dict)
     return configspec(new_class)  # type: ignore[return-value]
 
 
-def deppy_to_source(
-        deppy: Deppy,
+def get_object_params(obj: Any) -> Set[str]:
+    return set(inspect.signature(obj.__init__).parameters.keys()) - {"self"}
+
+
+def blueprint_to_source(
+        blueprint: Type[BlueprintSubclass],
         target_nodes: Optional[Iterable[Node]] = None,
         exclude_for_storing: Optional[Iterable[Node]] = None,
         with_pbar: Optional[bool] = False
 ) -> DltSource:
-    name = deppy.name.lower()
+    name = blueprint.__name__
     target_nodes = target_nodes or []
-    exclude_for_storing = exclude_for_storing or []
-    secrets = set(deppy.graph_builder.secrets.keys())
 
-    configure_param_names = set(inspect.signature(deppy.configure).parameters.keys())
-    configure_param_names.remove("kwargs")
-    configs = configure_param_names | set(deppy.graph_builder.consts.keys())
-    spec = create_spec(name, configs, secrets)
+    exclude_for_storing = exclude_for_storing or []
+    secrets = set(blueprint._secrets.keys())
+    configs = set(blueprint._consts.keys())
+    objects = {
+        object_name: create_spec(
+            source_name=object_name,
+            configs=get_object_params(object_accessor.type),
+            secrets=set(),
+            objects={},
+        )
+        for object_name, object_accessor in blueprint._objects.items()
+    }
+
+    spec = create_spec(name, configs, secrets, objects)
 
     @dlt.source(name=f"{name}_source")
     def source():
         resolved_spec = resolve_configuration(spec(), sections=("sources", name))  # type: ignore[operator]
-        configure_kwargs = {k: getattr(resolved_spec, k) for k in (configs | secrets)}
-        deppy.configure(**configure_kwargs)
+        init_kwargs = {k: getattr(resolved_spec, k) for k in (configs | secrets)}
+        init_kwargs.update({
+            obj_name: {
+                param_name: getattr(getattr(resolved_spec, obj_name), param_name)
+                for param_name in get_object_params(obj)
+            } for obj_name, obj in objects.items()
+        })
+        deppy: Blueprint = blueprint(**init_kwargs)
 
-        @dlt.resource(selected=False, name=f"{name}_extract")
+        actual_target_nodes = [deppy.bp_to_node_map[n] for n in target_nodes]
+        actual_exclude_for_storing = [deppy.bp_to_node_map[n] for n in exclude_for_storing]
+
+        @dlt.resource(selected=False, name=f"{deppy._name}_extract")
         async def extract() -> DltResource:
-            func = deppy.execute(*target_nodes, with_pbar=with_pbar)
+            func = deppy.execute(*actual_target_nodes, with_pbar=with_pbar)
             if hasattr(deppy, "__aenter__"):
                 async with deppy:
                     yield await func
@@ -63,14 +87,15 @@ def deppy_to_source(
                 yield await func
 
         resources = [extract]
-        nodes: list[Node] = deppy.graph.nodes if len(target_nodes) == 0 else target_nodes
-        nodes = [node for node in nodes if node not in exclude_for_storing]
+        nodes: list[DeppyNode] = deppy.graph.nodes if len(actual_target_nodes) == 0 else actual_target_nodes
+        nodes = [node for node in nodes if node not in actual_exclude_for_storing]
 
         for n in nodes:
-            if n.secret:
-                continue
-            if n.name in deppy.consts:
-                continue
+            if n not in actual_target_nodes:
+                if n.secret:
+                    continue
+                if n.name in deppy._consts:
+                    continue
 
             @dlt.transformer(data_from=extract, name=n.name)
             async def get_node_data(result: Scope, node: Node = n) -> DltResource:
