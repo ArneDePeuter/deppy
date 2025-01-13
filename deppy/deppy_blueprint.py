@@ -1,10 +1,56 @@
-from typing import Any, Optional, Iterable, Callable, TypeVar, Type
+from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
+from functools import wraps
 
-from .node import Node
+from .node import Node as DeppyNode
 from .deppy import Deppy
 
 
 T = TypeVar("T")
+
+P = ParamSpec("P")
+FT = TypeVar("FT")
+
+
+class ObjectAccessor:
+    def __init__(self, t):
+        self.type = t
+        self.accesses_methods = []
+        self.curr_access = []
+        self.name = None
+        self.ignore = False
+
+    def __getattr__(self, item):
+        if self.ignore:
+            if item == "$":
+                self.ignore = False
+            return self
+        if item == "*":
+            self.ignore = True
+            self.accesses_methods.append(self.curr_access)
+            self.curr_access = []
+            return self
+        self.curr_access.append(item)
+        return self
+
+
+def Object(t: Type[T]) -> T:
+    return ObjectAccessor(t)
+
+
+def wrapper(function: Callable[P, FT]) -> Callable[P, DeppyNode]:
+    @wraps(function)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> DeppyNode:
+        func = args[0]
+        if isinstance(func, ObjectAccessor):
+            func.__getattr__("*")
+        obj = function(*args, **kwargs)
+        if isinstance(func, ObjectAccessor):
+            func.__getattr__("$")
+        return obj
+    return wrapper
+
+
+Node = wrapper(DeppyNode)
 
 
 class Output:
@@ -13,21 +59,6 @@ class Output:
         self.extractor = extractor
         self.loop = loop
         self.secret = secret
-
-
-class ObjectAccessor:
-    def __init__(self, t):
-        self.type = t
-        self.accesses_methods = []
-        self.name = None
-
-    def __getattr__(self, item):
-        self.accesses_methods.append(item)
-        return self
-
-
-def Object(t: Type[T]) -> T:
-    return ObjectAccessor(t)
 
 
 class Const:
@@ -50,7 +81,7 @@ class DeppyBlueprintMeta(type):
         edges = []
 
         for attr_name, attr_value in dct.items():
-            if isinstance(attr_value, Node):
+            if isinstance(attr_value, DeppyNode):
                 nodes[attr_name] = attr_value
             elif isinstance(attr_value, Const):
                 consts[attr_name] = attr_value
@@ -89,17 +120,13 @@ class DeppyBlueprint(Deppy, metaclass=DeppyBlueprintMeta):
         for name, node in self._nodes.items():
             if isinstance(node.func, ObjectAccessor):
                 obj = object_map[node.func.name]
-                accessing = True
-                while accessing:
-                    method = node.func.accesses_methods.pop(0)
-                    # because this gets called firstly on the function in the Node constructor
-                    if method == "__name__":
-                        accessing = False
-                        continue
-                    obj = getattr(obj, method)
+                accesses = node.func.accesses_methods.pop(0)
+                for access in accesses:
+                    obj = getattr(obj, access)
                 node.func = obj
             node.name = name
-            bp_to_node_map[node] = node # these are always nodes and not blueprints
+            # these are always nodes and not blueprints
+            bp_to_node_map[node] = node
             self.graph.add_node(node)
 
         for name, output in self._outputs.items():
