@@ -18,6 +18,7 @@ class Deppy:
         self.add_secret = self.graph_builder.add_secret
         self.consts = self.graph_builder.consts
         self.secrets = self.graph_builder.secrets
+        self.configure = self.graph_builder.configure
 
         self.executor = Executor(self.graph)
         self.execute = self.executor.execute
@@ -37,7 +38,3 @@ class Deppy:
                     d = {"color": "red", "style": "bold", "penwidth": 2, "arrowhead": "diamond"}
                     dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
-
-    def configure(self, **kwargs) -> "Deppy":
-        self.graph_builder.configure(**kwargs)
-        return self
