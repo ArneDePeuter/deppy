@@ -59,7 +59,7 @@ async def test_unique_scope_upon_loop():
 
     result = await deppy.execute()
 
-    assert result(item3_node) == [(2, 6), (4, 12), (6, 18)]
+    assert result.query(item3_node) == [(2, 6), (4, 12), (6, 18)]
 
 
 async def test_loopmethod_zip():
@@ -82,7 +82,7 @@ async def test_loopmethod_zip():
     deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
     result = await deppy.execute()
-    assert result(item1_node) == [(1, "a"), (2, "b"), (3, "c")]
+    assert result.query(item1_node) == [(1, "a"), (2, "b"), (3, "c")]
 
 
 async def test_loopmethod_cartesian():
@@ -105,7 +105,7 @@ async def test_loopmethod_cartesian():
     deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
     result = await deppy.execute()
-    assert result(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
+    assert result.query(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
 
 
 async def test_output():
@@ -126,8 +126,8 @@ async def test_output():
     deppy.add_edge(lists_node_output_2, combine_node, "val2", loop=True)
 
     result = await deppy.execute()
-    assert result(combine_node) == ["1-a", "2-b"]
-    assert result(lists_node) == [([1, 2], ["a", "b"])]
+    assert result.query(combine_node) == ["1-a", "2-b"]
+    assert result.query(lists_node) == [([1, 2], ["a", "b"])]
 
     assert len(result.children[0].children) == 2
 
@@ -158,7 +158,7 @@ async def test_solo_race():
 
     result = await deppy.execute()
 
-    assert result(process_again_node) == [6, 12]
+    assert result.query(process_again_node) == [6, 12]
 
     diff = entry_times[1] - entry_times[0]
     # branch diff is greater than 3 meaning one process started earlier than the other
@@ -169,7 +169,7 @@ async def test_solo_race():
     entry_times.clear()
     result = await deppy.execute()
 
-    assert result(process_again_node) == [6, 12]
+    assert result.query(process_again_node) == [6, 12]
 
     diff = entry_times[1] - entry_times[0]
     # processes started at the same time
@@ -226,12 +226,12 @@ async def test_ignore_result():
     deppy.add_edge(filter_node, increment_node, "data")
 
     result = await deppy.execute()
-    assert result(increment_node) == [3, 5]
-    all_filter_results = result(filter_node)
+    assert result.query(increment_node) == [3, 5]
+    all_filter_results = result.query(filter_node)
     assert len(all_filter_results) == 3
-    all_filter_valid_results = result(filter_node, ignored_results=False)
+    all_filter_valid_results = result.query(filter_node, ignored_results=False)
     assert len(all_filter_valid_results) == 2
-    all_filter_invalid_results = result(filter_node, ignored_results=True)
+    all_filter_invalid_results = result.query(filter_node, ignored_results=True)
     assert len(all_filter_invalid_results) == 1
     assert all_filter_invalid_results[0].data == 3
 
@@ -250,4 +250,4 @@ async def test_constant():
     deppy.add_edge(l2, add_node, "val2", loop=True)
 
     result = await deppy.execute()
-    assert result(add_node) == [2, 4, 6]
+    assert result.query(add_node) == [2, 4, 6]
