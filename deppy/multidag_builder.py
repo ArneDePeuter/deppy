@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Optional, ParamSpec, TypeVar, Dict
 from functools import wraps
 from networkx import is_directed_acyclic_graph, MultiDiGraph
 import inspect
@@ -13,7 +13,8 @@ T = TypeVar("T")
 class GraphBuilder:
     def __init__(self, graph: Optional[MultiDiGraph] = None) -> None:
         self.graph = graph or MultiDiGraph()
-        self.const_counter = 0
+        self.consts = {}
+        self.secrets = {}
 
         def add_wrapper(function: Callable[P, T]) -> Callable[P, Node]:
             @wraps(function)
@@ -47,11 +48,27 @@ class GraphBuilder:
         self.graph.add_edge(node1, node2, key=input_name, loop=loop)
         self.check()
 
-    def add_const(self, value: Any, secret: Optional[bool] = False, name: Optional[str] = None) -> Node:
-        name = name or "CONST" + str(self.const_counter)
-        node = self.add_node(func=lambda: value, name=name, secret=secret)
-        self.const_counter += 1
+    def add_const(self, name: Optional[str] = None, value: Optional[Any] = None) -> Node:
+        name = name or "CONST" + str(len(self.consts))
+        node = self.add_node(func=lambda: value, name=name, secret=False)
+        self.consts[name] = node
         return node
 
-    def add_secret(self, value: Any, name: Optional[str] = None) -> Node:
-        return self.add_const(value=value, secret=True, name=name)
+    def add_secret(self, name: Optional[str] = None, value: Optional[Any] = None) -> Node:
+        name = name or "SECRET" + str(len(self.secrets))
+        node = self.add_node(func=lambda: value, name=name, secret=True)
+        self.secrets[name] = node
+        return node
+
+    def configure(self, **kwargs: Dict[str, Any]):
+        def make_lambda(val):
+            # separate function for lambda creation to avoid late binding
+            return lambda: val
+
+        for key, value in kwargs.items():
+            if key in self.consts:
+                self.consts[key].func = make_lambda(value)
+            elif key in self.secrets:
+                self.secrets[key].func = make_lambda(value)
+            else:
+                raise ValueError(f"Unknown configuration key {key}")

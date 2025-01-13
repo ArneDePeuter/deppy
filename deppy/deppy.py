@@ -6,7 +6,9 @@ from .executor import Executor
 
 
 class Deppy:
-    def __init__(self) -> None:
+    def __init__(self, name: Optional[str] = "Deppy") -> None:
+        self.name = name
+
         self.graph_builder = GraphBuilder()
         self.graph = self.graph_builder.graph
         self.add_node = self.graph_builder.add_node
@@ -14,6 +16,8 @@ class Deppy:
         self.add_edge = self.graph_builder.add_edge
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
+        self.consts = self.graph_builder.consts
+        self.secrets = self.graph_builder.secrets
 
         self.executor = Executor(self.graph)
         self.execute = self.executor.execute
@@ -33,3 +37,7 @@ class Deppy:
                     d = {"color": "red", "style": "bold", "penwidth": 2, "arrowhead": "diamond"}
                     dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
+
+    def configure(self, **kwargs) -> "Deppy":
+        self.graph_builder.configure(**kwargs)
+        return self

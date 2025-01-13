@@ -11,11 +11,8 @@ def main():
         progress="log"
     )
 
-    source = deppy_to_source(
-        Octopus,
-        secrets={"software_house_uuid", "user", "password"},
-        exclude_for_storing={"locale_id", "bookyear_id", "dossier_id"}
-    )
+    octopus_deppy = Octopus()
+    source = deppy_to_source(octopus_deppy)
     info = pipeline.run(source)
     print(info)
 

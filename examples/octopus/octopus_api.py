@@ -1,3 +1,4 @@
+from typing import Optional
 from deppy.helpers.wrappers.dkr import Dkr, JsonDk, StringDk
 from deppy.helpers.wrappers.stated_kwargs import StatedKwargs
 from deppy.helpers.asyncclient import AsyncClient
@@ -5,7 +6,7 @@ from datetime import datetime
 
 
 class OctopusApi(AsyncClient):
-    def __init__(self, base_url: str, initial_modified_timestamp: str, state_file: str):
+    def __init__(self, initial_modified_timestamp: str, state_file: str, base_url: Optional[str] = ""):
         self.stated_kwargs = StatedKwargs(state_file=state_file)
         self.initial_modified_timestamp = initial_modified_timestamp
         super().__init__(base_url=base_url)

@@ -10,9 +10,10 @@ async def main():
         os.makedirs("./output")
 
     octopus = Octopus(
-        base_url="https://service.inaras.be/octopus-rest-api/v1",
         initial_modified_timestamp="2000-01-01 00:00:00.000",
         state_file="./output/state.json",
+    ).configure(
+        base_url="https://service.inaras.be/octopus-rest-api/v1",
         software_house_uuid=os.getenv("SOFTWARE_HOUSE_UUID"),
         user=os.getenv("USER"),
         password=os.getenv("PASSWORD"),
