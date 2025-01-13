@@ -48,13 +48,13 @@ class GraphBuilder:
         self.graph.add_edge(node1, node2, key=input_name, loop=loop)
         self.check()
 
-    def add_const(self, name: Optional[str] = None, value: Optional[Any] = None) -> Node:
+    def add_const(self, value: Optional[str] = None, name: Optional[Any] = None) -> Node:
         name = name or "CONST" + str(len(self.consts))
         node = self.add_node(func=lambda: value, name=name, secret=False)
         self.consts[name] = node
         return node
 
-    def add_secret(self, name: Optional[str] = None, value: Optional[Any] = None) -> Node:
+    def add_secret(self, value: Optional[str] = None, name: Optional[Any] = None) -> Node:
         name = name or "SECRET" + str(len(self.secrets))
         node = self.add_node(func=lambda: value, name=name, secret=True)
         self.secrets[name] = node
