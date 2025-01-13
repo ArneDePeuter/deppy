@@ -5,8 +5,8 @@ from datetime import datetime
 
 
 class OctopusApi(AsyncClient):
-    def __init__(self, base_url: str, initial_modified_timestamp: str, stated_kwargs: StatedKwargs):
-        self.stated_kwargs = stated_kwargs
+    def __init__(self, base_url: str, initial_modified_timestamp: str, state_file: str):
+        self.stated_kwargs = StatedKwargs(state_file=state_file)
         self.initial_modified_timestamp = initial_modified_timestamp
         super().__init__(base_url=base_url)
 
@@ -93,3 +93,13 @@ class OctopusApi(AsyncClient):
             ),
             {404}
         )
+
+    async def __aenter__(self):
+        await super().__aenter__()
+        self.stated_kwargs.__enter__()
+        return None
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await super().__aexit__(exc_type, exc_val, exc_tb)
+        self.stated_kwargs.__exit__(exc_type, exc_val, exc_tb)
+        return None

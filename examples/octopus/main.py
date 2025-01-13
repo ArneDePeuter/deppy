@@ -2,34 +2,26 @@ import os
 import json
 import asyncio
 
-from deppy.helpers.wrappers.stated_kwargs import StatedKwargs
-
-from octopus_api import OctopusApi
-from octopus_deppy import OctopusDeppy
+from octopus import Octopus
 
 
 async def main():
     if not os.path.exists("./output"):
         os.makedirs("./output")
 
-    stated_kwargs = StatedKwargs("./output/state.json")
-    octopus_api = OctopusApi(
+    octopus = Octopus(
         base_url="https://service.inaras.be/octopus-rest-api/v1",
         initial_modified_timestamp="2000-01-01 00:00:00.000",
-        stated_kwargs=stated_kwargs
-    )
-    deppy = OctopusDeppy(
-        api=octopus_api,
+        state_file="./output/state.json",
         software_house_uuid=os.getenv("SOFTWARE_HOUSE_UUID"),
         user=os.getenv("USER"),
         password=os.getenv("PASSWORD"),
         locale_id=1
     )
-    deppy.dot("./output/octopus_workflow.dot")
+    octopus.dot("./output/octopus_workflow.dot")
 
-    async with octopus_api:
-        with stated_kwargs:
-            result = await deppy.execute()
+    async with octopus:
+        result = await octopus.execute()
 
     result.dot("./output/result.dot")
     with open("./output/result.json", "w") as f:

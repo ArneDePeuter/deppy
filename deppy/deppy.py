@@ -1,3 +1,6 @@
+from typing import Optional
+
+from .node import Node
 from .multidag_builder import GraphBuilder
 from .executor import Executor
 
@@ -14,6 +17,12 @@ class Deppy:
 
         self.executor = Executor(self.graph)
         self.execute = self.executor.execute
+
+    def get_node_by_name(self, name: str) -> Optional[Node]:
+        for node in self.graph.nodes:
+            if node.name == name:
+                return node
+        return None
 
     def dot(self, filename: str) -> None:  # pragma: no cover
         from networkx.drawing.nx_pydot import write_dot
