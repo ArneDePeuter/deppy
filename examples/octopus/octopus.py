@@ -1,9 +1,9 @@
 from octopus_api import OctopusApi
 
-from deppy.deppy_blueprint import Const, Secret, Node, DeppyBluePrint, Output, Object
+from deppy.deppy_blueprint import Const, Secret, Node, DeppyBlueprint, Output, Object
 
 
-class Octopus(DeppyBluePrint):
+class Octopus(DeppyBlueprint):
     api = Object(OctopusApi)
 
     software_house_uuid = Secret()
