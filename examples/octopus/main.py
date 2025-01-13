@@ -3,6 +3,7 @@ import json
 import asyncio
 
 from octopus import Octopus
+from octopus_api import OctopusApi
 
 
 async def main():
@@ -10,11 +11,11 @@ async def main():
         os.makedirs("./output")
 
     octopus = Octopus(
-        api={
-            "base_url": "https://service.inaras.be/octopus-rest-api/v1",
-            "initial_modified_timestamp": "2000-01-01 00:00:00.000",
-            "state_file": "./output/state.json"
-        },
+        api=OctopusApi(
+            base_url="https://service.inaras.be/octopus-rest-api/v1",
+            initial_modified_timestamp="2000-01-01 00:00:00.000",
+            state_file="./output/state.json"
+        ),
         software_house_uuid=os.getenv("SOFTWARE_HOUSE_UUID"),
         user=os.getenv("USER"),
         password=os.getenv("PASSWORD"),

@@ -113,7 +113,13 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
         self.bp_to_node_map = {}
 
         for name, obj in self._objects.items():
-            obj = obj.type(**(kwargs.get(name) or {}))
+            input_ = kwargs.get(name, {})
+            if isinstance(input_, dict):
+                obj = obj.type(**input_)
+            elif isinstance(input_, obj.type):
+                obj = input_
+            else:
+                raise ValueError(f"Invalid input for object {name}")
             object_map[name] = obj
             setattr(self, name, obj)
 
