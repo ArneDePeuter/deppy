@@ -18,15 +18,15 @@ class Executor:
         for successor in self.flow_graph.successors(node):
             self.in_degrees[successor] -= 1
 
-    def qualified_successors(self, node: Node) -> List[Node]:
-        return [
+    def qualified_successors(self, node: Node) -> Set[Node]:
+        return set(
             successor
             for successor in self.flow_graph.successors(node)
             if self.in_degrees[successor] == 0
-        ]
+        )
 
-    def get_ready_nodes(self) -> List[Node]:
-        return [node for node in self.flow_graph if self.in_degrees[node] == 0]
+    def get_ready_nodes(self) -> Set[Node]:
+        return set(node for node in self.flow_graph if self.in_degrees[node] == 0)
 
     @staticmethod
     def save_results(node: Node, results: List[Any], scope: Scope) -> Set[Scope]:

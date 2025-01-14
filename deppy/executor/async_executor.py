@@ -28,12 +28,20 @@ class AsyncExecutor(Executor):
         new_scopes = await asyncio.gather(*[self.execute_node_with_scope(node, scope) for scope in scopes])
         self.scope_map[node] = set.union(*new_scopes)
         self.mark_complete(node)
-        await asyncio.gather(*[self.execute_node(successor) for successor in self.qualified_successors(node)])
 
     async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
         ready_nodes = self.get_ready_nodes()
 
-        await asyncio.gather(*[self.execute_node(node) for node in ready_nodes])
+        tasks = ready_nodes
+        while tasks:
+            current_tasks = tasks
+            tasks = set()
+
+            await asyncio.gather(*[self.execute_node(node) for node in current_tasks])
+
+            for node in current_tasks:
+                successors = self.qualified_successors(node)
+                tasks.update(successors)
 
         return self.root
