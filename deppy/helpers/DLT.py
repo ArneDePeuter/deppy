@@ -7,7 +7,7 @@ from dlt.sources import DltResource, DltSource
 from dlt.common.configuration.resolve import resolve_configuration
 
 from deppy.blueprint import Node, Blueprint, resolve_node
-from deppy import Scope
+from deppy import Scope, AsyncExecutor, SyncExecutor
 from deppy.node import Node as DeppyNode
 
 BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
@@ -52,8 +52,7 @@ def create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
 def blueprint_to_source(
         blueprint: Type[BlueprintSubclass],
         target_nodes: Optional[Iterable[Node]] = None,
-        exclude_for_storing: Optional[Iterable[Node]] = None,
-        with_pbar: Optional[bool] = False
+        exclude_for_storing: Optional[Iterable[Node]] = None
 ) -> DltSource:
     name = blueprint.__name__
     target_nodes = target_nodes or []
@@ -84,8 +83,9 @@ def blueprint_to_source(
         actual_exclude_for_storing = [resolve_node(deppy, n) for n in exclude_for_storing]
 
         @dlt.resource(selected=False, name=f"{deppy._name}_extract")
-        async def extract() -> DltResource:
-            func = deppy.execute(*actual_target_nodes, with_pbar=with_pbar)
+        async def extract_async() -> DltResource:
+            func = AsyncExecutor(deppy).execute(*actual_target_nodes)
+
             if hasattr(deppy, "__aenter__"):
                 async with deppy:
                     yield await func
@@ -95,6 +95,20 @@ def blueprint_to_source(
             else:
                 yield await func
 
+        @dlt.resource(selected=False, name=f"{deppy._name}_extract")
+        def extract_sync() -> DltResource:
+            func = SyncExecutor(deppy).execute(*actual_target_nodes)
+
+            if hasattr(deppy, "__aenter__"):
+                async with deppy:
+                    yield func
+            elif hasattr(deppy, "__enter__"):
+                with deppy:
+                    yield func
+            else:
+                yield func
+
+        extract = extract_async if deppy.has_async_nodes() else extract_sync
         resources = [extract]
         nodes: list[DeppyNode] = deppy.graph.nodes if len(actual_target_nodes) == 0 else actual_target_nodes
         nodes = [node for node in nodes if node not in actual_exclude_for_storing]
@@ -107,7 +121,7 @@ def blueprint_to_source(
                     continue
 
             @dlt.transformer(data_from=extract, name=n.name)
-            async def get_node_data(result: Scope, node: Node = n) -> DltResource:
+            def get_node_data(result: Scope, node: Node = n) -> DltResource:
                 yield result.query(node, ignored_results=False)
             resources.append(get_node_data)
 
