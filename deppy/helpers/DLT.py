@@ -6,7 +6,7 @@ import dlt
 from dlt.sources import DltResource, DltSource
 from dlt.common.configuration.resolve import resolve_configuration
 
-from deppy.blueprint import Node, Blueprint, SecretType
+from deppy.blueprint import Node, Blueprint
 from deppy import Scope
 from deppy.node import Node as DeppyNode
 
@@ -42,7 +42,7 @@ def create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
     for k, v in params.items():
         if k == "self":
             continue
-        if isinstance(v.annotation, SecretType):
+        if isinstance(v.annotation, TSecretValue):
             secrets.add(k)
         else:
             configs.add(k)
