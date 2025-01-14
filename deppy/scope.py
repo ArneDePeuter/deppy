@@ -9,9 +9,10 @@ import json
 class Scope(dict):
     not_found = object()
 
-    def __init__(self, parent: Optional[dict] = None) -> None:
+    def __init__(self, parent: Optional[dict] = None, path: str = "$") -> None:
         self.parent = parent
         self.children: list['Scope'] = []
+        self.path = path
         super().__init__()
 
     def query(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
@@ -49,9 +50,18 @@ class Scope(dict):
         return json.dumps(self.dump(), indent=2)
 
     def birth(self) -> 'Scope':
-        child = Scope(self)
+        child = Scope(self, path=f"{self.path}/{len(self.children)}")
         self.children.append(child)
         return child
+
+    def is_family(self, other: 'Scope') -> bool:
+        if self is other:
+            return True
+        if self.parent is other.parent:
+            return True
+        if self.path.startswith(other.path) or other.path.startswith(self.path):
+            return True
+        return False
 
     def __hash__(self) -> int:
         return id(self)
