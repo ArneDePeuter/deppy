@@ -2,7 +2,6 @@ import os
 import json
 import asyncio
 
-from deppy import AsyncExecutor
 from octopus import Octopus
 from octopus_api import OctopusApi
 
@@ -25,7 +24,7 @@ async def main():
     octopus.dot("./output/octopus_workflow.dot")
 
     async with octopus:
-        result = await AsyncExecutor(octopus).execute()
+        result = await octopus.execute()
 
     result.dot("./output/result.dot")
     with open("./output/result.json", "w") as f:

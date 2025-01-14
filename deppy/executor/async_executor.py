@@ -4,11 +4,10 @@ from typing import Sequence, Set
 from deppy.node import Node
 from deppy.scope import Scope
 from .executor import Executor
-from deppy.deppy import Deppy
 
 
 class AsyncExecutor(Executor):
-    def __init__(self, deppy: Deppy) -> None:
+    def __init__(self, deppy) -> None:
         super().__init__(deppy)
 
     @staticmethod

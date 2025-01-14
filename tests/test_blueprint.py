@@ -1,5 +1,4 @@
 from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Object
-from deppy import AsyncExecutor
 
 
 async def test_blueprint():
@@ -38,7 +37,7 @@ async def test_blueprint():
     assert not hasattr(deppy, "__enter__")
     assert not hasattr(deppy, "__exit__")
 
-    result = await AsyncExecutor(deppy).execute()
+    result = deppy.execute()
 
     assert result.query(deppy.add_node1) == [7]
     assert result.query(deppy.items) == [[0, 1, 2]]
