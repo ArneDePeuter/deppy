@@ -1,6 +1,5 @@
 import asyncio
-from deppy import Deppy, IgnoreResult
-from deppy.async_executor import AsyncExecutor
+from deppy import Deppy, IgnoreResult, AsyncExecutor
 from itertools import product
 
 
