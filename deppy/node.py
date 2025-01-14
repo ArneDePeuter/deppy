@@ -20,7 +20,6 @@ class Node:
             func: Callable[..., Any],
             loop_strategy: Optional[LoopStrategy] = product,
             to_thread: Optional[bool] = False,
-            team_race: Optional[bool] = True,
             name: Optional[str] = None,
             secret: Optional[bool] = False
     ):
@@ -28,7 +27,6 @@ class Node:
         self.loop_vars = []
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
-        self.team_race = team_race
         self.name = name or func.__name__
         self.secret = secret
 

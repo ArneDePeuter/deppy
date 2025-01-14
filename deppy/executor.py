@@ -17,6 +17,7 @@ class Executor:
         self.pbar = None
         self.mutex_map: Dict[Node, asyncio.Lock] = {}
         self.second_order_predecessor_map = {}
+        self.scope_map: Dict[Node, Iterable[Scope]] = {}
 
     @contextmanager
     def update_pbar(self, new_nodes: int) -> None:
@@ -39,12 +40,33 @@ class Executor:
         # this method is not concurrently safe because
         # if a a predecessor of one of the successors is removed while looping trough for the qualified nodes
         # it could be that this predecessor and this current node creates tasks, meaning too much tasks are created
+        successor_scope_map = {}
         async with self.acquire(node):
             if node in work_graph:
                 work_graph.remove_node(node)
-            successors = self.flow_graph.successors(node)
+            successors = list(self.flow_graph.successors(node))
+
+            # getting the correct scopes for the successors
+            # optionally later merge scopes
+            for successor in successors:
+                relevant_scopes = self.scope_map.get(successor)
+                if relevant_scopes is None:
+                    self.scope_map[successor] = scopes
+                    successor_scope_map[successor] = scopes
+                else:
+                    relevant_scope = list(relevant_scopes).pop()
+                    new_scope = list(scopes).pop()
+                    assert relevant_scope.is_family(new_scope), "Scope merging is not implemented"
+                    # get the deepest scope
+                    if len(new_scope.path) > len(relevant_scope.path):
+                        self.scope_map[successor] = scopes
+                        successor_scope_map[successor] = scopes
+                    else:
+                        self.scope_map[successor] = relevant_scopes
+                        successor_scope_map[successor] = relevant_scopes
+
             qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
-        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in scopes])
+        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in successor_scope_map[successor]])
 
     async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any], work_graph: MultiDiGraph) -> None:
         result = await node(**args)
@@ -61,21 +83,7 @@ class Executor:
 
         await self.execute_successors(node, scopes, work_graph)
 
-    async def solo_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
-        args_list = await self._resolve_args(node, scope)
-
-        if node.loop_vars:
-            scope = scope.birth()
-            scope["scope_name"] = str(node)
-
-        task = asyncio.gather(*[self.node_task(node, scope, single_args, work_graph.copy()) for single_args in args_list])
-        if self.pbar:
-            with self.update_pbar(len(args_list)):
-                await task
-        else:
-            await task
-
-    async def team_race(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
+    async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
         args_list = await self._resolve_args(node, scope)
 
         task = asyncio.gather(*[node(**single_args) for single_args in args_list])
@@ -100,12 +108,6 @@ class Executor:
                     scopes.add(child)
 
         await self.execute_successors(node, scopes, work_graph)
-
-    async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
-        if node.team_race:
-            await self.team_race(node, scope, work_graph)
-        else:
-            await self.solo_race(node, scope, work_graph)
 
     def create_work_graph(self, *target_nodes) -> MultiDiGraph:
         work_graph: MultiDiGraph = self.graph.copy()
@@ -146,6 +148,7 @@ class Executor:
         self.flow_graph = work_graph.copy()
         root = Scope()
         self.construct_mutex_map(work_graph)
+        self.scope_map = {}
 
         qualified_nodes = [node for node in work_graph if work_graph.in_degree(node) == 0]
 

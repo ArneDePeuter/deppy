@@ -132,50 +132,6 @@ async def test_output():
     assert len(result.children[0].children) == 2
 
 
-async def test_solo_race():
-    async def list1():
-        return [0, 1]
-
-    async def process(data):
-        await asyncio.sleep(data)
-        return data * 2
-
-    entry_times = []
-
-    async def process_again(data):
-        import time
-        entry_times.append(time.time())
-        return data * 3
-
-    deppy = Deppy()
-
-    list1_node = deppy.add_node(list1)
-    process_node = deppy.add_node(process, team_race=False)
-    process_again_node = deppy.add_node(process_again)
-
-    deppy.add_edge(list1_node, process_node, "data", loop=True)
-    deppy.add_edge(process_node, process_again_node, "data")
-
-    result = await deppy.execute()
-
-    assert result.query(process_again_node) == [0, 6]
-
-    diff = entry_times[1] - entry_times[0]
-    # branch diff is greater than 3 meaning one process started earlier than the other
-    assert abs(diff - 1) < 0.1
-
-    process_node.team_race = True
-
-    entry_times.clear()
-    result = await deppy.execute()
-
-    assert result.query(process_again_node) == [0, 6]
-
-    diff = entry_times[1] - entry_times[0]
-    # processes started at the same time
-    assert diff < 0.1
-
-
 async def test_node_execution_without_dependencies():
     deppy = Deppy()
 

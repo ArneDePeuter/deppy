@@ -54,7 +54,7 @@ Node = wrapper(DeppyNode)
 
 
 class Output:
-    def __init__(self, node: Node, extractor: Optional[Callable[[Any], Any]], loop: Optional[bool] = False, secret: Optional[bool] = None):
+    def __init__(self, node: Node, extractor: Optional[Callable[[Any], Any]] = lambda x: x, loop: Optional[bool] = False, secret: Optional[bool] = None):
         self.node = node
         self.extractor = extractor
         self.loop = loop
@@ -163,10 +163,13 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             self.add_edge(u, v, *(edge[2:]))
 
         async_context_mngr = False
+        sync_context_mngr = False
         for obj in object_map.values():
             if hasattr(obj, "__aenter__") and hasattr(obj, "__aexit__"):
                 async_context_mngr = True
                 break
+            if hasattr(obj, "__enter__") and hasattr(obj, "__exit__"):
+                sync_context_mngr = True
 
         if async_context_mngr:
             async def __aenter__(self):
@@ -186,7 +189,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
 
             setattr(self.__class__, "__aenter__", __aenter__)
             setattr(self.__class__, "__aexit__", __aexit__)
-        else:
+        elif sync_context_mngr:
             def __enter__(self):
                 for obj in object_map.values():
                     if hasattr(obj, "__enter__"):
