@@ -2,7 +2,6 @@ from typing import Optional
 
 from .node import Node
 from .multidag_builder import GraphBuilder
-from .executor import Executor
 
 
 class Deppy:
@@ -16,9 +15,6 @@ class Deppy:
         self.add_edge = self.graph_builder.add_edge
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
-
-        self.executor = Executor(self.graph)
-        self.execute = self.executor.execute
 
     def get_node_by_name(self, name: str) -> Optional[Node]:
         for node in self.graph.nodes:

@@ -5,13 +5,13 @@ from typing import Any, Tuple, Callable, Iterable, Sequence, Union, Type, Option
 LoopStrategy = Union[Callable[[Sequence[Any]], Iterable[Tuple[Any]]], Type[zip]]
 
 
-class NodeExecutionError(Exception):
+class NodeFunctionError(Exception):
     def __init__(self, node, *args, **kwargs):
         self.node = node
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        return f"Error executing node {self.node}"
+        return f"Error executing node function of {self.node}"
 
 
 class Node:
@@ -30,15 +30,21 @@ class Node:
         self.name = name or func.__name__
         self.secret = secret
 
-    async def __call__(self, **kwargs):
+    @property
+    def is_async(self) -> bool:
+        return asyncio.iscoroutinefunction(self.func)
+
+    def call_sync(self, *args, **kwargs):
         try:
-            if asyncio.iscoroutinefunction(self.func):
-                return await self.func(**kwargs)
-            elif self.to_thread:
-                return await asyncio.to_thread(self.func, **kwargs)
-            return self.func(**kwargs)
+            return self.func(*args, **kwargs)
         except Exception as e:
-            raise NodeExecutionError(self) from e
+            raise NodeFunctionError(self, e) from e
+
+    async def call_async(self, *args, **kwargs):
+        try:
+            return await self.func(*args, **kwargs)
+        except Exception as e:
+            raise NodeFunctionError(self, e) from e
 
     def __repr__(self):
         return f"<Node {self.name}>"
