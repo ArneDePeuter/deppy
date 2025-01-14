@@ -2,7 +2,6 @@ from deppy.helpers.wrappers.dkr import Dkr, JsonDk, StringDk
 from deppy.helpers.asyncclient import AsyncClient
 
 from powerbi_auth import PowerBIAuth
-from deppy.blueprint import SecretT
 
 
 class PowerBIApi(AsyncClient):
@@ -10,9 +9,9 @@ class PowerBIApi(AsyncClient):
             self,
             base_url: str,
             scope: str,
-            access_token_url: SecretT(str),
-            client_id: SecretT(str),
-            client_secret: SecretT(str),
+            access_token_url: str,
+            client_id: str,
+            client_secret: str,
     ):
         super().__init__(
             base_url=base_url,
