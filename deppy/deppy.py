@@ -41,10 +41,7 @@ class Deppy:
 
     @property
     def execute(self):
-        sync_nodes = [node for node in self.graph.nodes if not node.is_async]
-        if len(sync_nodes) == len(self.graph.nodes):
+        has_async_nodes = any(node.is_async for node in self.graph.nodes)
+        if not has_async_nodes:
             return self.executor.execute_sync
-        all_sync_to_thread = all(node.to_thread for node in sync_nodes)
-        if all_sync_to_thread:
-            return self.executor.execute_async
         return self.executor.execute_hybrid
