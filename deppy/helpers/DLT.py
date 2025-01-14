@@ -6,7 +6,7 @@ import dlt
 from dlt.sources import DltResource, DltSource
 from dlt.common.configuration.resolve import resolve_configuration
 
-from deppy.blueprint import Node, Blueprint
+from deppy.blueprint import Node, Blueprint, resolve_node
 from deppy import Scope
 from deppy.node import Node as DeppyNode
 
@@ -80,8 +80,8 @@ def blueprint_to_source(
         })
         deppy: Blueprint = blueprint(**init_kwargs)
 
-        actual_target_nodes = [deppy.bp_to_node_map[n] for n in target_nodes]
-        actual_exclude_for_storing = [deppy.bp_to_node_map[n] for n in exclude_for_storing]
+        actual_target_nodes = [resolve_node(deppy, n) for n in target_nodes]
+        actual_exclude_for_storing = [resolve_node(deppy, n) for n in exclude_for_storing]
 
         @dlt.resource(selected=False, name=f"{deppy._name}_extract")
         async def extract() -> DltResource:

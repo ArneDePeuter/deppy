@@ -201,3 +201,9 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             setattr(self.__class__, "__enter__", __enter__)
             setattr(self.__class__, "__exit__", __exit__)
 
+
+def resolve_node(blueprint: Blueprint, node: Node) -> DeppyNode:
+    actual_node = blueprint.bp_to_node_map.get(node)
+    if actual_node is None:
+        raise ValueError(f"Node {node} not found in blueprint")
+    return actual_node
