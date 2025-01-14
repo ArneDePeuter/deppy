@@ -6,7 +6,7 @@ import dlt
 from dlt.sources import DltResource, DltSource
 from dlt.common.configuration.resolve import resolve_configuration
 
-from deppy.blueprint import Node, Blueprint
+from deppy.blueprint import Node, Blueprint, SecretType
 from deppy import Scope
 from deppy.node import Node as DeppyNode
 
@@ -35,6 +35,20 @@ def get_object_params(obj: Any) -> Set[str]:
     return set(inspect.signature(obj.__init__).parameters.keys()) - {"self"}
 
 
+def create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
+    params = inspect.signature(obj.__init__).parameters
+    secrets = set()
+    configs = set()
+    for k, v in params.items():
+        if k == "self":
+            continue
+        if isinstance(v.annotation, SecretType):
+            secrets.add(k)
+        else:
+            configs.add(k)
+    return create_spec(obj_name, configs, secrets, {})
+
+
 def blueprint_to_source(
         blueprint: Type[BlueprintSubclass],
         target_nodes: Optional[Iterable[Node]] = None,
@@ -48,13 +62,8 @@ def blueprint_to_source(
     secrets = set(blueprint._secrets.keys())
     configs = set(blueprint._consts.keys())
     objects = {
-        object_name: create_spec(
-            source_name=object_name,
-            configs=get_object_params(object_accessor.type),
-            secrets=set(),
-            objects={},
-        )
-        for object_name, object_accessor in blueprint._objects.items()
+        object_name: create_object_spec(object_name, object_accesor.type)
+        for object_name, object_accesor in blueprint._objects.items()
     }
 
     spec = create_spec(name, configs, secrets, objects)
