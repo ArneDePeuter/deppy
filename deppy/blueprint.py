@@ -11,6 +11,15 @@ P = ParamSpec("P")
 FT = TypeVar("FT")
 
 
+class SecretType:
+    def __init__(self, type):
+        self.type = type
+
+
+def SecretT(type_: Type[T]) -> Type[T]:
+    return SecretType(type_)
+
+
 class ObjectAccessor:
     def __init__(self, t):
         self.type = t
@@ -137,7 +146,8 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
 
         for name, output in self._outputs.items():
             bp = output
-            output = self.add_output(output.node, name, output.extractor, output.loop, output.secret)
+            actual_node = self.bp_to_node_map[output.node]
+            output = self.add_output(actual_node, name, output.extractor, output.loop, output.secret)
             self.bp_to_node_map[bp] = output
             setattr(self, name, output)
 
