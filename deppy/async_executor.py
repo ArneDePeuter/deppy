@@ -9,6 +9,7 @@ from .deppy import Deppy
 
 class AsyncExecutor(Executor):
     def __init__(self, deppy: Deppy) -> None:
+        assert deppy.has_async_nodes(), "Deppy has no async nodes but AsyncExecutor was constructed"
         super().__init__(deppy)
 
     @staticmethod
