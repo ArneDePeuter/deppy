@@ -11,15 +11,6 @@ P = ParamSpec("P")
 FT = TypeVar("FT")
 
 
-class SecretType:
-    def __init__(self, type):
-        self.type = type
-
-
-def SecretT(type_: Type[T]) -> Type[T]:
-    return SecretType(type_)
-
-
 class ObjectAccessor:
     def __init__(self, t):
         self.type = t
