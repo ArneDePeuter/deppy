@@ -7,6 +7,7 @@ from deppy.deppy import Deppy
 
 
 class SyncExecutor(Executor):
+    # TODO: add threading
     def __init__(self, deppy: Deppy) -> None:
         assert not deppy.has_async_nodes(), "Deppy has async nodes but SyncExecutor was constructed"
         super().__init__(deppy)
