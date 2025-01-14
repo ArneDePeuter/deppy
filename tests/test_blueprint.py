@@ -1,5 +1,5 @@
 from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Object
-from deppy.async_executor import AsyncExecutor
+from deppy import AsyncExecutor
 
 
 async def test_blueprint():

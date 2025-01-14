@@ -1,9 +1,9 @@
 from typing import Sequence, Set
 
-from .node import Node
-from .scope import Scope
+from deppy.node import Node
+from deppy.scope import Scope
 from .executor import Executor
-from .deppy import Deppy
+from deppy.deppy import Deppy
 
 
 class SyncExecutor(Executor):

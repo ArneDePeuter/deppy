@@ -1,15 +1,14 @@
 import asyncio
 from typing import Sequence, Set
 
-from .node import Node
-from .scope import Scope
+from deppy.node import Node
+from deppy.scope import Scope
 from .executor import Executor
-from .deppy import Deppy
+from deppy.deppy import Deppy
 
 
 class AsyncExecutor(Executor):
     def __init__(self, deppy: Deppy) -> None:
-        assert deppy.has_async_nodes(), "Deppy has no async nodes but AsyncExecutor was constructed"
         super().__init__(deppy)
 
     @staticmethod

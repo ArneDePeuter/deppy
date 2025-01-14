@@ -1,10 +1,10 @@
 from typing import Dict, Any, List, Sequence, Set
 from networkx import MultiDiGraph
 
-from .node import Node
-from .scope import Scope
-from .ignore_result import IgnoreResult
-from .deppy import Deppy
+from deppy.node import Node
+from deppy.scope import Scope
+from deppy.ignore_result import IgnoreResult
+from deppy.deppy import Deppy
 
 
 class Executor:
