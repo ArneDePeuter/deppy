@@ -18,18 +18,18 @@ class AsyncExecutor(Executor):
             return await asyncio.to_thread(node.call_sync, **kwargs)
         return node.call_sync(**kwargs)
 
-    async def execute_node_with_scope(self, node: Node, scope: Scope) -> Set[Scope]:
+    async def execute_node_with_scope_async(self, node: Node, scope: Scope) -> Set[Scope]:
         call_args = self.resolve_args(node, scope)
         results = await asyncio.gather(*[self.call_node(node, **args) for args in call_args])
         return self.save_results(node, list(results), scope)
 
-    async def execute_node(self, node: Node) -> None:
+    async def execute_node_async(self, node: Node) -> None:
         scopes = self.get_call_scopes(node)
-        new_scopes = await asyncio.gather(*[self.execute_node_with_scope(node, scope) for scope in scopes])
+        new_scopes = await asyncio.gather(*[self.execute_node_with_scope_async(node, scope) for scope in scopes])
         self.scope_map[node] = set.union(*new_scopes)
         self.mark_complete(node)
 
-    async def execute(self, *target_nodes: Sequence[Node]) -> Scope:
+    async def execute_async(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
         ready_nodes = self.get_ready_nodes()
 
@@ -38,7 +38,7 @@ class AsyncExecutor(Executor):
             current_tasks = tasks
             tasks = set()
 
-            await asyncio.gather(*[self.execute_node(node) for node in current_tasks])
+            await asyncio.gather(*[self.execute_node_async(node) for node in current_tasks])
 
             for node in current_tasks:
                 successors = self.qualified_successors(node)

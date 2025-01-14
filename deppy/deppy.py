@@ -1,8 +1,9 @@
 from typing import Optional
+import asyncio
 
 from .node import Node
 from .multidag_builder import GraphBuilder
-from .executor import AsyncExecutor, SyncExecutor
+from .executor import HybridExecutor
 
 
 class Deppy:
@@ -17,11 +18,7 @@ class Deppy:
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
 
-        self.async_executor = AsyncExecutor(self)
-        self.sync_executor = SyncExecutor(self)
-
-    def has_async_nodes(self) -> bool:
-        return any(node.is_async for node in self.graph.nodes)
+        self.executor = HybridExecutor(self)
 
     def get_node_by_name(self, name: str) -> Optional[Node]:
         for node in self.graph.nodes:
@@ -39,8 +36,15 @@ class Deppy:
                     dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
 
+    def execute_is_async(self) -> bool:
+        return asyncio.iscoroutinefunction(self.execute)
+
     @property
     def execute(self):
-        if self.has_async_nodes():
-            return self.async_executor.execute
-        return self.sync_executor.execute
+        sync_nodes = [node for node in self.graph.nodes if not node.is_async]
+        if len(sync_nodes) == len(self.graph.nodes):
+            return self.executor.execute_sync
+        all_sync_to_thread = all(node.to_thread for node in sync_nodes)
+        if all_sync_to_thread:
+            return self.executor.execute_async
+        return self.executor.execute_hybrid
