@@ -16,6 +16,9 @@ class Deppy:
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
 
+    def has_async_nodes(self) -> bool:
+        return any(node.is_async for node in self.graph.nodes)
+
     def get_node_by_name(self, name: str) -> Optional[Node]:
         for node in self.graph.nodes:
             if node.name == name:
