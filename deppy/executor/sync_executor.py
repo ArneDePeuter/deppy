@@ -21,14 +21,20 @@ class SyncExecutor(Executor):
         self.scope_map[node] = set.union(*new_scopes)
         self.mark_complete(node)
 
-        for successor in self.qualified_successors(node):
-            self.execute_node(successor)
-
     def execute(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
         ready_nodes = self.get_ready_nodes()
 
-        for node in ready_nodes:
-            self.execute_node(node)
+        tasks = ready_nodes
+        while tasks:
+            current_tasks = tasks
+            tasks = set()
+
+            for node in current_tasks:
+                self.execute_node(node)
+
+            for node in current_tasks:
+                successors = self.qualified_successors(node)
+                tasks.update(successors)
 
         return self.root
