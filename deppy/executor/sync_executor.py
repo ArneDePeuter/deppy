@@ -3,13 +3,11 @@ from typing import Sequence, Set
 from deppy.node import Node
 from deppy.scope import Scope
 from .executor import Executor
-from deppy.deppy import Deppy
 
 
 class SyncExecutor(Executor):
     # TODO: add threading
-    def __init__(self, deppy: Deppy) -> None:
-        assert not deppy.has_async_nodes(), "Deppy has async nodes but SyncExecutor was constructed"
+    def __init__(self, deppy) -> None:
         super().__init__(deppy)
 
     def execute_node_with_scope(self, node: Node, scope: Scope) -> Set[Scope]:

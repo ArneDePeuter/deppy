@@ -1,5 +1,5 @@
 import asyncio
-from deppy import Deppy, IgnoreResult, AsyncExecutor
+from deppy import Deppy, IgnoreResult
 from itertools import product
 
 
@@ -12,7 +12,7 @@ def test_deppy_register_node():
     test_node = deppy.add_node(test_node)
 
     assert test_node in deppy.graph
-    assert asyncio.run(AsyncExecutor(deppy).execute()) == {test_node: "node_registered"}
+    assert deppy.execute() == {test_node: "node_registered"}
 
 
 async def test_deppy_execute_graph():
@@ -28,7 +28,7 @@ async def test_deppy_execute_graph():
     node2 = deppy.add_node(node2)
     deppy.add_edge(node1, node2, "dep")
 
-    result = await AsyncExecutor(deppy).execute()
+    result = deppy.execute()
     assert result == {node1: "node1_result", node2: "node2_result: node1_result"}
 
 
@@ -57,7 +57,7 @@ async def test_unique_scope_upon_loop():
     deppy.add_edge(item1_node, item3_node, "data1")
     deppy.add_edge(item2_node, item3_node, "data2")
 
-    result = await AsyncExecutor(deppy).execute()
+    result = deppy.execute()
 
     assert result.query(item3_node) == [(2, 6), (4, 12), (6, 18)]
 
@@ -81,7 +81,7 @@ async def test_loopmethod_zip():
     deppy.add_edge(l1_node, item1_node, "data1", loop=True)
     deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
-    result = await AsyncExecutor(deppy).execute()
+    result = deppy.execute()
     assert result.query(item1_node) == [(1, "a"), (2, "b"), (3, "c")]
 
 
@@ -104,7 +104,7 @@ async def test_loopmethod_cartesian():
     deppy.add_edge(l1_node, item1_node, "data1", loop=True)
     deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
-    result = await AsyncExecutor(deppy).execute()
+    result = deppy.execute()
     assert result.query(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
 
 
@@ -125,7 +125,7 @@ async def test_output():
     deppy.add_edge(lists_node_output_1, combine_node, "val1", loop=True)
     deppy.add_edge(lists_node_output_2, combine_node, "val2", loop=True)
 
-    result = await AsyncExecutor(deppy).execute()
+    result = await deppy.execute()
     assert result.query(combine_node) == ["1-a", "2-b"]
     assert result.query(lists_node) == [([1, 2], ["a", "b"])]
 
@@ -140,7 +140,7 @@ async def test_node_execution_without_dependencies():
 
     test_node = deppy.add_node(test)
 
-    result = await AsyncExecutor(deppy).execute()
+    result = await deppy.execute()
     assert result == {test_node: "result"}
 
 
@@ -158,7 +158,7 @@ async def test_node_with_dependencies():
 
     deppy.add_edge(dependency_node, test_node, "dep")
 
-    result = await AsyncExecutor(deppy).execute()
+    result = await deppy.execute()
     assert result == {dependency_node: "dependency_result", test_node: "node_result: dependency_result"}
 
 
@@ -181,7 +181,7 @@ async def test_ignore_result():
     deppy.add_edge(l_node, filter_node, "data", loop=True)
     deppy.add_edge(filter_node, increment_node, "data")
 
-    result = await AsyncExecutor(deppy).execute()
+    result = await deppy.execute()
     assert result.query(increment_node) == [3, 5]
     all_filter_results = result.query(filter_node)
     assert len(all_filter_results) == 3
@@ -205,5 +205,5 @@ async def test_constant():
     deppy.add_edge(l1, add_node, "val1", loop=True)
     deppy.add_edge(l2, add_node, "val2", loop=True)
 
-    result = await AsyncExecutor(deppy).execute()
+    result = await deppy.execute()
     assert result.query(add_node) == [2, 4, 6]

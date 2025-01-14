@@ -4,11 +4,10 @@ from networkx import MultiDiGraph
 from deppy.node import Node
 from deppy.scope import Scope
 from deppy.ignore_result import IgnoreResult
-from deppy.deppy import Deppy
 
 
 class Executor:
-    def __init__(self, deppy: Deppy) -> None:
+    def __init__(self, deppy) -> None:
         self.deppy = deppy
         self.scope_map: Dict[Node, Set[Scope]] = {}
         self.in_degrees: Dict[Node, int] = {}

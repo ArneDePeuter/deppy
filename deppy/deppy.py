@@ -2,6 +2,7 @@ from typing import Optional
 
 from .node import Node
 from .multidag_builder import GraphBuilder
+from .executor import AsyncExecutor, SyncExecutor
 
 
 class Deppy:
@@ -15,6 +16,9 @@ class Deppy:
         self.add_edge = self.graph_builder.add_edge
         self.add_const = self.graph_builder.add_const
         self.add_secret = self.graph_builder.add_secret
+
+        self.async_executor = AsyncExecutor(self)
+        self.sync_executor = SyncExecutor(self)
 
     def has_async_nodes(self) -> bool:
         return any(node.is_async for node in self.graph.nodes)
@@ -34,3 +38,9 @@ class Deppy:
                     d = {"color": "red", "style": "bold", "penwidth": 2, "arrowhead": "diamond"}
                     dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
+
+    @property
+    def execute(self):
+        if self.has_async_nodes():
+            return self.async_executor.execute
+        return self.sync_executor.execute
