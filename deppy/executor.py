@@ -18,6 +18,7 @@ class Executor:
         self.mutex_map: Dict[Node, asyncio.Lock] = {}
         self.second_order_predecessor_map = {}
         self.scope_map: Dict[Node, Iterable[Scope]] = {}
+        self.in_degrees = {}
 
     @contextmanager
     def update_pbar(self, new_nodes: int) -> None:
@@ -36,15 +37,17 @@ class Executor:
         for mutex in mutexes:
             mutex.release()
 
-    async def execute_successors(self, node: Node, scopes: Iterable[Scope], work_graph: MultiDiGraph) -> None:
+    async def execute_successors(self, node: Node, scopes: Iterable[Scope]) -> None:
         # this method is not concurrently safe because
         # if a a predecessor of one of the successors is removed while looping trough for the qualified nodes
         # it could be that this predecessor and this current node creates tasks, meaning too much tasks are created
         successor_scope_map = {}
         async with self.acquire(node):
-            if node in work_graph:
-                work_graph.remove_node(node)
             successors = list(self.flow_graph.successors(node))
+            if node in self.in_degrees:
+                del self.in_degrees[node]
+                for successor in successors:
+                    self.in_degrees[successor] -= 1
 
             # getting the correct scopes for the successors
             # optionally later merge scopes
@@ -54,8 +57,8 @@ class Executor:
                     self.scope_map[successor] = scopes
                     successor_scope_map[successor] = scopes
                 else:
-                    relevant_scope = list(relevant_scopes).pop()
-                    new_scope = list(scopes).pop()
+                    relevant_scope = next(iter(relevant_scopes))
+                    new_scope = next(iter(scopes))
                     assert relevant_scope.is_family(new_scope), "Scope merging is not implemented"
                     # get the deepest scope
                     if len(new_scope.path) > len(relevant_scope.path):
@@ -65,10 +68,15 @@ class Executor:
                         self.scope_map[successor] = relevant_scopes
                         successor_scope_map[successor] = relevant_scopes
 
-            qualified_nodes = [successor for successor in successors if work_graph.in_degree(successor) == 0]
-        await asyncio.gather(*[self.execute_node(successor, scope, work_graph) for successor in qualified_nodes for scope in successor_scope_map[successor]])
+            qualified_nodes = [successor for successor in successors if self.in_degrees[successor] == 0]
+        tasks = [
+            self.execute_node(successor, scope)
+            for successor in qualified_nodes
+            for scope in successor_scope_map[successor]
+        ]
+        await asyncio.gather(*tasks)
 
-    async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any], work_graph: MultiDiGraph) -> None:
+    async def node_task(self, node: Node, scope: Scope, args: Dict[str, Any]) -> None:
         result = await node(**args)
         scopes = set()
         if not node.loop_vars:
@@ -81,9 +89,9 @@ class Executor:
             if not isinstance(result, IgnoreResult):
                 scopes.add(child)
 
-        await self.execute_successors(node, scopes, work_graph)
+        await self.execute_successors(node, scopes)
 
-    async def execute_node(self, node: Node, scope: Scope, work_graph: MultiDiGraph) -> None:
+    async def execute_node(self, node: Node, scope: Scope) -> None:
         args_list = await self._resolve_args(node, scope)
 
         task = asyncio.gather(*[node(**single_args) for single_args in args_list])
@@ -107,12 +115,12 @@ class Executor:
                 if not isinstance(result, IgnoreResult):
                     scopes.add(child)
 
-        await self.execute_successors(node, scopes, work_graph)
+        await self.execute_successors(node, scopes)
 
-    def create_work_graph(self, *target_nodes) -> MultiDiGraph:
-        work_graph: MultiDiGraph = self.graph.copy()
+    def create_flow_graph(self, *target_nodes) -> MultiDiGraph:
+        flow_graph: MultiDiGraph = self.graph.copy()
         if len(target_nodes) == 0:
-            return work_graph
+            return flow_graph
 
         relevant_nodes = set()
         new_nodes = set(target_nodes)
@@ -120,11 +128,11 @@ class Executor:
             relevant_nodes.update(new_nodes)
             newer = set()
             for node in new_nodes:
-                newer.update(work_graph.predecessors(node))
+                newer.update(flow_graph.predecessors(node))
             new_nodes = newer
-        irrelevant_nodes = set(work_graph) - relevant_nodes
-        work_graph.remove_nodes_from(irrelevant_nodes)
-        return work_graph
+        irrelevant_nodes = set(flow_graph) - relevant_nodes
+        flow_graph.remove_nodes_from(irrelevant_nodes)
+        return flow_graph
 
     def construct_mutex_map(self, work_graph: MultiDiGraph) -> None:
         for node in work_graph:
@@ -144,21 +152,22 @@ class Executor:
 
     async def execute(self, *target_nodes: Sequence[Node], with_pbar: Optional[bool] = True) -> Scope:
         """Execute the graph layer by layer."""
-        work_graph = self.create_work_graph(*target_nodes)
-        self.flow_graph = work_graph.copy()
+        self.flow_graph = self.create_flow_graph(*target_nodes)
         root = Scope()
-        self.construct_mutex_map(work_graph)
+        self.construct_mutex_map(self.flow_graph)
         self.scope_map = {}
 
-        qualified_nodes = [node for node in work_graph if work_graph.in_degree(node) == 0]
+        self.in_degrees = {node: self.flow_graph.in_degree(node) for node in self.flow_graph}
+
+        qualified_nodes = [node for node in self.in_degrees.keys() if self.in_degrees[node] == 0]
 
         if with_pbar:
             with tqdm(total=len(qualified_nodes), desc="Executing Deppy Graph", unit="node") as self.pbar:
-                await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
+                await asyncio.gather(*[self.execute_node(node, root) for node in qualified_nodes])
                 self.pbar.update(len(qualified_nodes))
             self.pbar = None
         else:
-            await asyncio.gather(*[self.execute_node(node, root, work_graph) for node in qualified_nodes])
+            await asyncio.gather(*[self.execute_node(node, root) for node in qualified_nodes])
         return root
 
     async def _resolve_args(self, node: Node, scope: Scope) -> List[Dict[str, Any]]:
