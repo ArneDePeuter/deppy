@@ -31,8 +31,6 @@ class Executor:
                 scopes.add(scope)
             return scopes
         else:
-            scope = scope.birth()
-            scope["scope_name"] = str(node)
             for result in results:
                 child = scope.birth()
                 child[node] = result
