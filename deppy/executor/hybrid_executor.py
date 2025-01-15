@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Optional
 from deppy.node import Node
 from deppy.scope import Scope
 import asyncio
@@ -8,8 +8,17 @@ from .async_executor import AsyncExecutor
 
 
 class HybridExecutor(AsyncExecutor, SyncExecutor):
-    def __init__(self, deppy) -> None:
-        super().__init__(deppy)
+    def __init__(
+            self,
+            deppy,
+            max_thread_workers: Optional[int] = None,
+            max_concurrent_tasks: Optional[int] = None
+    ) -> None:
+        super().__init__(
+            deppy,
+            max_thread_workers=max_thread_workers,
+            max_concurrent_tasks=max_concurrent_tasks
+        )
 
     async def execute_hybrid(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
@@ -20,14 +29,13 @@ class HybridExecutor(AsyncExecutor, SyncExecutor):
             current_tasks = tasks
             tasks = set()
 
-            async_tasks = [node for node in current_tasks if node.is_async]
-            sync_tasks = [node for node in current_tasks if not node.is_async]
+            async_nodes = {node for node in current_tasks if node.is_async}
+            sync_nodes = {node for node in current_tasks if not node.is_async}
 
-            if async_tasks:
-                await asyncio.gather(*[self.execute_node_async(node) for node in async_tasks])
+            if async_nodes:
+                await asyncio.gather(*[self.execute_node_async(node) for node in async_nodes])
 
-            for node in sync_tasks:
-                self.execute_node_sync(node)
+            self.execute_nodes_sync(sync_nodes)
 
             for node in current_tasks:
                 successors = self.qualified_successors(node)

@@ -1,5 +1,5 @@
 import asyncio
-from typing import Sequence, Set
+from typing import Sequence, Set, Optional, Tuple, Any
 
 from deppy.node import Node
 from deppy.scope import Scope
@@ -7,8 +7,27 @@ from .executor import Executor
 
 
 class AsyncExecutor(Executor):
-    def __init__(self, deppy) -> None:
+    def __init__(self, deppy, max_concurrent_tasks: Optional[int] = None, *args, **kwargs) -> None:
         super().__init__(deppy)
+        if max_concurrent_tasks:
+            self.semaphore = asyncio.Semaphore(max_concurrent_tasks)
+            self.call_node_async = self._call_with_semaphore
+        else:
+            self.semaphore = None
+            self.call_node_async = self._call_without_semaphore
+
+    async def _call_with_semaphore(self, node, *args, **kwargs) -> Any:
+        async with self.semaphore:
+            return await node.call_async(*args, **kwargs)
+
+    @staticmethod
+    async def _call_without_semaphore(node, *args, **kwargs) -> Any:
+        return await node.func(*args, **kwargs)
+
+    async def execute_node_with_scope_async_limited(self, node: Node, scope: Scope) -> Set[Scope]:
+        call_args = self.resolve_args(node, scope)
+        results = await asyncio.gather(*[self.call_node_async(node, **args) for args in call_args])
+        return self.save_results(node, list(results), scope)
 
     async def execute_node_with_scope_async(self, node: Node, scope: Scope) -> Set[Scope]:
         call_args = self.resolve_args(node, scope)
