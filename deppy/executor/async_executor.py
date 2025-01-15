@@ -24,14 +24,9 @@ class AsyncExecutor(Executor):
     async def _call_without_semaphore(node, *args, **kwargs) -> Any:
         return await node.func(*args, **kwargs)
 
-    async def execute_node_with_scope_async_limited(self, node: Node, scope: Scope) -> Set[Scope]:
-        call_args = self.resolve_args(node, scope)
-        results = await asyncio.gather(*[self.call_node_async(node, **args) for args in call_args])
-        return self.save_results(node, list(results), scope)
-
     async def execute_node_with_scope_async(self, node: Node, scope: Scope) -> Set[Scope]:
         call_args = self.resolve_args(node, scope)
-        results = await asyncio.gather(*[node.call_async(**args) for args in call_args])
+        results = await asyncio.gather(*[self.call_node_async(node, **args) for args in call_args])
         return self.save_results(node, list(results), scope)
 
     async def execute_node_async(self, node: Node) -> None:
