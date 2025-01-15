@@ -54,10 +54,8 @@ class Scope(dict):
         self.children.append(child)
         return child
 
-    def is_family(self, other: 'Scope') -> bool:
+    def common_branch(self, other: 'Scope') -> bool:
         if self is other:
-            return True
-        if self.parent is other.parent:
             return True
         if self.path.startswith(other.path) or other.path.startswith(self.path):
             return True

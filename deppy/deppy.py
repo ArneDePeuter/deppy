@@ -2,7 +2,7 @@ from typing import Optional
 import asyncio
 
 from .node import Node
-from .multidag_builder import GraphBuilder
+from .graph_builder import GraphBuilder
 from .executor import HybridExecutor
 
 

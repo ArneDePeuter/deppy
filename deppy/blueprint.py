@@ -1,5 +1,6 @@
 from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
 from functools import wraps
+from copy import deepcopy
 
 from .node import Node as DeppyNode
 from .deppy import Deppy
@@ -123,16 +124,19 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             object_map[name] = obj
             setattr(self, name, obj)
 
-        for name, node in self._nodes.items():
-            if isinstance(node.func, ObjectAccessor):
-                obj = object_map[node.func.name]
-                accesses = node.func.accesses_methods.pop(0)
-                for access in accesses:
+        i = 0
+        for name, bp in self._nodes.items():
+            if isinstance(bp.func, ObjectAccessor):
+                obj = object_map[bp.func.name]
+                for access in bp.func.accesses_methods[i]:
                     obj = getattr(obj, access)
-                node.func = obj
+                node = DeppyNode(obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret)
+                i += 1
+                setattr(self, name, node)
+            else:
+                node = bp
             node.name = name
-            # these are always nodes and not blueprints
-            self.bp_to_node_map[node] = node
+            self.bp_to_node_map[bp] = node
             self.graph.add_node(node)
 
         for name, output in self._outputs.items():

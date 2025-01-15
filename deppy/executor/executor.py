@@ -74,7 +74,7 @@ class Executor:
         for iter_scopes in all_scopes:
             cur_scope = next(iter(scopes))
             qualifier_scope = next(iter(iter_scopes))
-            assert cur_scope.is_family(qualifier_scope), "Scope joining not implemented"
+            assert cur_scope.common_branch(qualifier_scope), "Scope joining not implemented"
             if len(cur_scope.path) < len(qualifier_scope.path):
                 scopes = iter_scopes
         return scopes
