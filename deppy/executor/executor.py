@@ -15,18 +15,12 @@ class Executor:
         self.flow_graph: MultiDiGraph = MultiDiGraph()
 
     def mark_complete(self, node: Node) -> None:
+        del self.in_degrees[node]
         for successor in self.flow_graph.successors(node):
             self.in_degrees[successor] -= 1
 
-    def qualified_successors(self, node: Node) -> Set[Node]:
-        return set(
-            successor
-            for successor in self.flow_graph.successors(node)
-            if self.in_degrees[successor] == 0
-        )
-
     def get_ready_nodes(self) -> Set[Node]:
-        return set(node for node in self.flow_graph if self.in_degrees[node] == 0)
+        return set(node for node, degree in self.in_degrees.items() if degree == 0)
 
     @staticmethod
     def save_results(node: Node, results: List[Any], scope: Scope) -> Set[Scope]:

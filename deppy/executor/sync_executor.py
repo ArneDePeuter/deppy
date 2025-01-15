@@ -62,17 +62,8 @@ class SyncExecutor(Executor):
 
     def execute_sync(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
-        ready_nodes = self.get_ready_nodes()
 
-        tasks = ready_nodes
-        while tasks:
-            current_tasks = tasks
-            tasks = set()
-
-            self.execute_nodes_sync(current_tasks)
-
-            for node in current_tasks:
-                successors = self.qualified_successors(node)
-                tasks.update(successors)
+        while tasks := self.get_ready_nodes():
+            self.execute_nodes_sync(tasks)
 
         return self.root

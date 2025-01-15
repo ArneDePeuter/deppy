@@ -22,23 +22,14 @@ class HybridExecutor(AsyncExecutor, SyncExecutor):
 
     async def execute_hybrid(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
-        ready_nodes = self.get_ready_nodes()
 
-        tasks = ready_nodes
-        while tasks:
-            current_tasks = tasks
-            tasks = set()
-
-            async_nodes = {node for node in current_tasks if node.is_async}
-            sync_nodes = {node for node in current_tasks if not node.is_async}
+        while tasks := self.get_ready_nodes():
+            async_nodes = {node for node in tasks if node.is_async}
+            sync_nodes = {node for node in tasks if not node.is_async}
 
             if async_nodes:
                 await asyncio.gather(*[self.execute_node_async(node) for node in async_nodes])
 
             self.execute_nodes_sync(sync_nodes)
-
-            for node in current_tasks:
-                successors = self.qualified_successors(node)
-                tasks.update(successors)
 
         return self.root
