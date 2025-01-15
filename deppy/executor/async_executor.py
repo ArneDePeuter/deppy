@@ -42,17 +42,8 @@ class AsyncExecutor(Executor):
 
     async def execute_async(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
-        ready_nodes = self.get_ready_nodes()
 
-        tasks = ready_nodes
-        while tasks:
-            current_tasks = tasks
-            tasks = set()
-
-            await asyncio.gather(*[self.execute_node_async(node) for node in current_tasks])
-
-            for node in current_tasks:
-                successors = self.qualified_successors(node)
-                tasks.update(successors)
+        while tasks := self.get_ready_nodes():
+            await asyncio.gather(*[self.execute_node_async(node) for node in tasks])
 
         return self.root
