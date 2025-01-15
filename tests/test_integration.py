@@ -129,7 +129,7 @@ async def test_output():
     assert result.query(combine_node) == ["1-a", "2-b"]
     assert result.query(lists_node) == [([1, 2], ["a", "b"])]
 
-    assert len(result.children[0].children) == 2
+    assert len(result.children) == 2
 
 
 async def test_node_execution_without_dependencies():
