@@ -28,16 +28,13 @@ A quick and easy example to get you started with Deppy:
 ```python
 from deppy import Deppy
 
-deppy = Deppy()
-
-
 def get_list():
     return ["world!", "everyone!", "deppy!"]
-
 
 def say_hello(to):
     return f"Hello {to}"
 
+deppy = Deppy()
 
 get_list_node = deppy.add_node(func=get_list)
 say_hello_node = deppy.add_node(func=say_hello)
