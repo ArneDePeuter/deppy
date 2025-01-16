@@ -13,6 +13,8 @@
 
 ### 📦 Installation
 
+Deppy has support for python 3.11 and above.
+
 To use this library, ensure you have [uv](https://docs.astral.sh/uv/) installed.
 
 Install Dependencies with:
