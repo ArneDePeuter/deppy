@@ -25,6 +25,3 @@ async def test_execute_hybrid():
     root_scope = await executor.execute_hybrid()
 
     assert root_scope[node3] == 11  # (5 * 2) + 1
-    assert node1 not in executor.in_degrees
-    assert node2 not in executor.in_degrees
-    assert node3 not in executor.in_degrees

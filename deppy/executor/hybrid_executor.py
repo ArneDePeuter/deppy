@@ -23,7 +23,7 @@ class HybridExecutor(AsyncExecutor, SyncExecutor):
     async def execute_hybrid(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
 
-        while tasks := self.get_ready_nodes():
+        for tasks in self.batched_topological_order():
             async_nodes = {node for node in tasks if node.is_async}
             sync_nodes = {node for node in tasks if not node.is_async}
 

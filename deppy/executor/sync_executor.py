@@ -25,7 +25,6 @@ class SyncExecutor(Executor):
         scopes = self.get_call_scopes(node)
         new_scopes = [self.execute_node_with_scope_sync(node, scope) for scope in scopes]
         self.scope_map[node] = set.union(*new_scopes)
-        self.mark_complete(node)
 
     def gather_thread_tasks(self, node: Node) -> Dict[Future, Tuple[Node, Scope]]:
         task_map = {}
@@ -49,9 +48,6 @@ class SyncExecutor(Executor):
             new_scopes = self.save_results(node, [result], scope)
             self.scope_map[node].update(new_scopes)
 
-        for node in nodes:
-            self.mark_complete(node)
-
     def execute_nodes_sync(self, nodes: Set[Node]) -> None:
         threaded_nodes = {node for node in nodes if node.to_thread}
         sync_nodes = nodes - threaded_nodes
@@ -63,7 +59,7 @@ class SyncExecutor(Executor):
     def execute_sync(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
 
-        while tasks := self.get_ready_nodes():
+        for tasks in self.batched_topological_order():
             self.execute_nodes_sync(tasks)
 
         return self.root
