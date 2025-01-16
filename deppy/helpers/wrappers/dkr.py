@@ -8,6 +8,7 @@ import asyncio
 
 class Dk(ABC):
     """Dynamic keyword argument."""
+
     def __init__(self, keys: Set[str]):
         self.keys = keys
 
@@ -66,7 +67,9 @@ class IterDk(Dk):
         super().__init__(keys)
 
     def resolve(self, data):
-        return type(self.value)(v.resolve(data) if isinstance(v, Dk) else v for v in self.value)
+        return type(self.value)(
+            v.resolve(data) if isinstance(v, Dk) else v for v in self.value
+        )
 
 
 class JsonDk(Dk):
@@ -115,6 +118,7 @@ class JsonDk(Dk):
 
 class Dkr:
     """Dynamic keyword argument resolver."""
+
     def __init__(self, **dk_dict):
         self.dk_dict = dk_dict
 

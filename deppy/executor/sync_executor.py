@@ -9,7 +9,9 @@ from .executor import Executor
 
 
 class SyncExecutor(Executor):
-    def __init__(self, deppy, max_thread_workers: Optional[int] = None, *args, **kwargs) -> None:
+    def __init__(
+        self, deppy, max_thread_workers: Optional[int] = None, *args, **kwargs
+    ) -> None:
         super().__init__(deppy)
         self.thread_pool = ThreadPoolExecutor(max_workers=max_thread_workers)
 
@@ -23,7 +25,9 @@ class SyncExecutor(Executor):
 
     def execute_node_sync(self, node: Node) -> None:
         scopes = self.get_call_scopes(node)
-        new_scopes = [self.execute_node_with_scope_sync(node, scope) for scope in scopes]
+        new_scopes = [
+            self.execute_node_with_scope_sync(node, scope) for scope in scopes
+        ]
         self.scope_map[node] = set.union(*new_scopes)
 
     def gather_thread_tasks(self, node: Node) -> Dict[Future, Tuple[Node, Scope]]:

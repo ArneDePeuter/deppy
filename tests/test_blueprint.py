@@ -137,7 +137,9 @@ async def test_blueprint_async_context_management():
         amount_node = Node(obj.get_amount)
         edges = []
 
-    async with AsyncContextBlueprint(obj=ObjWithAsyncContext(42), obj2=ObjWithSyncContext(42)) as deppy:
+    async with AsyncContextBlueprint(
+        obj=ObjWithAsyncContext(42), obj2=ObjWithSyncContext(42)
+    ) as deppy:
         assert deppy.obj.entered
         assert deppy.obj2.entered
 
@@ -151,7 +153,9 @@ def test_blueprint_edges_validation():
         add_node = Node(add)
         edges = [(const, add_node)]  # Missing the key argument for the edge
 
-    with pytest.raises(AssertionError, match="Edges must be tuples with min length of 3"):
+    with pytest.raises(
+        AssertionError, match="Edges must be tuples with min length of 3"
+    ):
         InvalidBlueprint(const=1)
 
 

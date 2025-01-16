@@ -9,15 +9,15 @@ from .async_executor import AsyncExecutor
 
 class HybridExecutor(AsyncExecutor, SyncExecutor):
     def __init__(
-            self,
-            deppy,
-            max_thread_workers: Optional[int] = None,
-            max_concurrent_tasks: Optional[int] = None
+        self,
+        deppy,
+        max_thread_workers: Optional[int] = None,
+        max_concurrent_tasks: Optional[int] = None,
     ) -> None:
         super().__init__(
             deppy,
             max_thread_workers=max_thread_workers,
-            max_concurrent_tasks=max_concurrent_tasks
+            max_concurrent_tasks=max_concurrent_tasks,
         )
 
     async def execute_hybrid(self, *target_nodes: Sequence[Node]) -> Scope:
@@ -28,7 +28,9 @@ class HybridExecutor(AsyncExecutor, SyncExecutor):
             sync_nodes = {node for node in tasks if not node.is_async}
 
             if async_nodes:
-                await asyncio.gather(*[self.execute_node_async(node) for node in async_nodes])
+                await asyncio.gather(
+                    *[self.execute_node_async(node) for node in async_nodes]
+                )
 
             self.execute_nodes_sync(sync_nodes)
 

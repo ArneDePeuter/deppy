@@ -27,7 +27,7 @@ def test_mapping_dk_resolution():
     assert resolved == {
         "key": "value",
         "nested": {"inner": nested_skd},
-        "value": "value"
+        "value": "value",
     }
 
 
@@ -47,7 +47,7 @@ def test_json_dk_resolution():
         "list": ["{name}", "{age}"],
         "const_dict": {"key": "value"},
         "const_list": ["value1", "value2"],
-        "obj": obj
+        "obj": obj,
     }
     dk = JsonDk(json_data)
     resolved = dk.resolve(data)
@@ -57,7 +57,7 @@ def test_json_dk_resolution():
         "list": ["Alice", 30],
         "const_dict": {"key": "value"},
         "const_list": ["value1", "value2"],
-        "obj": obj
+        "obj": obj,
     }
 
 

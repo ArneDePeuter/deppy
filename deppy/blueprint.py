@@ -1,6 +1,5 @@
 from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
 from functools import wraps
-from copy import deepcopy
 
 from .node import Node as DeppyNode
 from .deppy import Deppy
@@ -48,6 +47,7 @@ def wrapper(function: Callable[P, FT]) -> Callable[P, DeppyNode]:
         if isinstance(func, ObjectAccessor):
             func.__getattr__("$")
         return obj
+
     return wrapper
 
 
@@ -55,7 +55,13 @@ Node = wrapper(DeppyNode)
 
 
 class Output:
-    def __init__(self, node: Node, extractor: Optional[Callable[[Any], Any]] = lambda x: x, loop: Optional[bool] = False, secret: Optional[bool] = None):
+    def __init__(
+        self,
+        node: Node,
+        extractor: Optional[Callable[[Any], Any]] = lambda x: x,
+        loop: Optional[bool] = False,
+        secret: Optional[bool] = None,
+    ):
         self.node = node
         self.extractor = extractor
         self.loop = loop
@@ -130,7 +136,9 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 obj = object_map[bp.func.name]
                 for access in bp.func.accesses_methods[i]:
                     obj = getattr(obj, access)
-                node = DeppyNode(obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret)
+                node = DeppyNode(
+                    obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret
+                )
                 i += 1
                 setattr(self, name, node)
             else:
@@ -142,7 +150,9 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
         for name, output in self._outputs.items():
             bp = output
             actual_node = self.bp_to_node_map[output.node]
-            output = self.add_output(actual_node, name, output.extractor, output.loop, output.secret)
+            output = self.add_output(
+                actual_node, name, output.extractor, output.loop, output.secret
+            )
             self.bp_to_node_map[bp] = output
             setattr(self, name, output)
 
@@ -176,6 +186,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 sync_context_mngr = True
 
         if async_context_mngr:
+
             async def __aenter__(self):
                 for obj in object_map.values():
                     if hasattr(obj, "__aenter__"):
@@ -194,6 +205,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             setattr(self.__class__, "__aenter__", __aenter__)
             setattr(self.__class__, "__aexit__", __aexit__)
         elif sync_context_mngr:
+
             def __enter__(self):
                 for obj in object_map.values():
                     if hasattr(obj, "__enter__"):

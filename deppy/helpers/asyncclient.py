@@ -2,7 +2,17 @@ from typing import Any, Awaitable, Callable, Union, Iterable, TypeVar, ParamSpec
 import httpx
 from httpx import URL, USE_CLIENT_DEFAULT
 from httpx._client import UseClientDefault
-from httpx._types import RequestContent, RequestData, RequestFiles, QueryParamTypes, HeaderTypes, CookieTypes, AuthTypes, TimeoutTypes, RequestExtensions
+from httpx._types import (
+    RequestContent,
+    RequestData,
+    RequestFiles,
+    QueryParamTypes,
+    HeaderTypes,
+    CookieTypes,
+    AuthTypes,
+    TimeoutTypes,
+    RequestExtensions,
+)
 from functools import wraps
 from deppy import IgnoreResult
 
@@ -48,9 +58,13 @@ class AsyncClient(httpx.AsyncClient):
         return response.json()
 
     @staticmethod
-    def ignore_on_status_codes(function: Callable[P, Awaitable[httpx.Response]], status_codes: Iterable[int]) -> Callable[P, Union[IgnoreResult, Any]]:
+    def ignore_on_status_codes(
+        function: Callable[P, Awaitable[httpx.Response]], status_codes: Iterable[int]
+    ) -> Callable[P, Union[IgnoreResult, Any]]:
         @wraps(function)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[IgnoreResult, Any]:
+        async def wrapper(
+            *args: P.args, **kwargs: P.kwargs
+        ) -> Union[IgnoreResult, Any]:
             try:
                 result = await function(*args, **kwargs)
                 return result
@@ -58,4 +72,5 @@ class AsyncClient(httpx.AsyncClient):
                 if e.response.status_code in status_codes:
                     return IgnoreResult()
                 raise
+
         return wrapper

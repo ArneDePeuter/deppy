@@ -28,11 +28,17 @@ class Deppy:
 
     def dot(self, filename: str) -> None:  # pragma: no cover
         from networkx.drawing.nx_pydot import write_dot
+
         dot_graph = self.graph.copy()
         for node in self.graph.nodes:
             for u, v, k, d in self.graph.edges(node, keys=True, data=True):
                 if d["loop"]:
-                    d = {"color": "red", "style": "bold", "penwidth": 2, "arrowhead": "diamond"}
+                    d = {
+                        "color": "red",
+                        "style": "bold",
+                        "penwidth": 2,
+                        "arrowhead": "diamond",
+                    }
                     dot_graph.add_edge(u, v, key=k, **d)
         write_dot(dot_graph, filename)
 

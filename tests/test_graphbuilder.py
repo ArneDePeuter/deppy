@@ -74,7 +74,9 @@ def test_add_output():
     def invalid_extractor(input_value, extra_param):
         return input_value + 1
 
-    with pytest.raises(ValueError, match="Extractor function must have exactly one parameter"):
+    with pytest.raises(
+        ValueError, match="Extractor function must have exactly one parameter"
+    ):
         builder.add_output(node=node1, name="OutputNode", extractor=invalid_extractor)
 
 

@@ -11,7 +11,7 @@ class Scope(dict):
 
     def __init__(self, parent: Optional[dict] = None, path: str = "$") -> None:
         self.parent = parent
-        self.children: list['Scope'] = []
+        self.children: list["Scope"] = []
         self.path = path
         super().__init__()
 
@@ -39,22 +39,25 @@ class Scope(dict):
 
     def dump(self, ignore_secret: Optional[bool] = False) -> Dict[str, Any]:
         return {
-            str(key): "***" if isinstance(key, Node) and key.secret and not ignore_secret else value
+            str(key): "***"
+            if isinstance(key, Node) and key.secret and not ignore_secret
+            else value
             for key, value in self.items()
         } | (
             {"children": [child.dump(ignore_secret) for child in self.children]}
-            if self.children else {}
+            if self.children
+            else {}
         )
 
     def __str__(self) -> str:  # pragma: no cover
         return json.dumps(self.dump(), indent=2)
 
-    def birth(self) -> 'Scope':
+    def birth(self) -> "Scope":
         child = Scope(self, path=f"{self.path}/{len(self.children)}")
         self.children.append(child)
         return child
 
-    def common_branch(self, other: 'Scope') -> bool:
+    def common_branch(self, other: "Scope") -> bool:
         if self is other:
             return True
         if self.path.startswith(other.path) or other.path.startswith(self.path):
@@ -64,18 +67,25 @@ class Scope(dict):
     def __hash__(self) -> int:
         return id(self)
 
-    def dot(self, filename: str, ignore_secret: Optional[bool] = False, max_label_size: int = 10) -> None:  # pragma: no cover
+    def dot(
+        self,
+        filename: str,
+        ignore_secret: Optional[bool] = False,
+        max_label_size: int = 10,
+    ) -> None:  # pragma: no cover
         import pydot
 
-        graph = pydot.Dot(graph_type='digraph')
+        graph = pydot.Dot(graph_type="digraph")
 
         def add_node(scope):
             data = scope.dump(ignore_secret)
             truncated = {
-                k: (str(v)[:max_label_size] + "...") if len(str(v)) > max_label_size else v
+                k: (str(v)[:max_label_size] + "...")
+                if len(str(v)) > max_label_size
+                else v
                 for k, v in data.items()
             }
-            label = json.dumps(truncated, indent=2).replace('"', '').replace("'", "")
+            label = json.dumps(truncated, indent=2).replace('"', "").replace("'", "")
             node = pydot.Node(id(scope), label=label)
             graph.add_node(node)
             for child in scope.children:
