@@ -16,6 +16,35 @@ Depending on the graph, this can be a synchronous or asynchronous operation.
 Optionally you can pass the nodes it should only execute. Then deppy will execute only those nodes and their dependencies.
 If no nodes are passed, it will execute all nodes in the deppy.
 
+Edges which are looped are marked with a red color.
+
+An example:
+```python
+from deppy import Deppy
+
+def multiply(val1, val2):
+    return val1 * val2
+
+def increment(val):
+    return val + 1
+
+deppy = Deppy()
+
+l1_node = deppy.add_const([1, 2, 3])
+l2_node = deppy.add_node([2, 3, 4])
+multiply_node = deppy.add_node(multiply)
+increment_node = deppy.add_node(increment)
+
+deppy.add_edge(l1_node, multiply_node, "val1", loop=True)
+deppy.add_edge(l2_node, multiply_node, "val2", loop=True)
+deppy.add_edge(multiply_node, increment_node, "val")
+
+deppy.dot("test_output.dot")
+```
+This would output following graph:
+
+<img src="img.png" width="200"/>
+
 Deppy will execute the graph as efficiently as possible.
 It will execute nodes in the correct order, based on their dependencies.
 It will try to execute nodes concurrently, if possible. And execute nodes in a separate thread if asked to.
