@@ -39,4 +39,6 @@ def test_execute_sync_threaded():
 
     assert root_scope[node3] == 11  # (5 * 2) + 1
 
+    executor.shutdown()
+
 

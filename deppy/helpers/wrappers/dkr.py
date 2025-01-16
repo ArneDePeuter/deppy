@@ -12,8 +12,8 @@ class Dk(ABC):
         self.keys = keys
 
     @abstractmethod
-    def resolve(self, data: Dict[str, Any]):
-        pass
+    def resolve(self, data: Dict[str, Any]):  # pragma: no cover
+        ...
 
 
 class StringDk(Dk):
@@ -86,8 +86,10 @@ class JsonDk(Dk):
         elif isinstance(value, Mapping):
             has_dk = False
             for k, v in value.items():
-                dk, detected = self.emplace_if_detected(v)
-                value[k] = dk
+                dk_v, detected_v = self.emplace_if_detected(v)
+                dk_k, detected_k = self.emplace_if_detected(k)
+                detected = detected_v or detected_k
+                value[dk_k] = dk_v
                 has_dk = has_dk or detected
             if has_dk:
                 return MappingDk(value), True

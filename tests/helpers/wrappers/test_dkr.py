@@ -19,6 +19,7 @@ def test_mapping_dk_resolution():
     mapping = {
         "key": StringDk("{key}"),
         "nested": {"inner": nested_skd},
+        StringDk("{key}"): "value",
     }
     dk = MappingDk(mapping)
     resolved = dk.resolve(data)
@@ -26,6 +27,7 @@ def test_mapping_dk_resolution():
     assert resolved == {
         "key": "value",
         "nested": {"inner": nested_skd},
+        "value": "value"
     }
 
 
@@ -39,16 +41,23 @@ def test_iter_dk_resolution():
 
 def test_json_dk_resolution():
     data = {"name": "Alice", "age": 30}
+    obj = object()
     json_data = {
         "person": {"name": "{name}", "age": "{age}"},
-        "list": ["{name}", "{age}"]
+        "list": ["{name}", "{age}"],
+        "const_dict": {"key": "value"},
+        "const_list": ["value1", "value2"],
+        "obj": obj
     }
     dk = JsonDk(json_data)
     resolved = dk.resolve(data)
 
     assert resolved == {
         "person": {"name": "Alice", "age": 30},
-        "list": ["Alice", 30]
+        "list": ["Alice", 30],
+        "const_dict": {"key": "value"},
+        "const_list": ["value1", "value2"],
+        "obj": obj
     }
 
 
@@ -82,5 +91,32 @@ async def test_dkr_wraps_async():
     dkr = Dkr(name=StringDk("{name}"))
     wrapped_func = dkr.wraps(greet)
     result = await wrapped_func(**data)
+
+    assert result == "Hello, Alice!"
+
+
+def test_dkr_decorator():
+    data = {"name": "Alice"}
+
+    @Dkr(name=StringDk("{name}"))
+    def greet(name):
+        return f"Hello, {name}!"
+
+    result = greet(**data)
+
+    assert result == "Hello, Alice!"
+
+
+def test_sub_name():
+    data = {"name": "Alice"}
+
+    def greet(name):
+        return f"Hello, {name}!"
+
+    greet = Dkr(name=StringDk("{name}"))(greet, "sub")
+
+    assert greet.__name__ == "greet_sub"
+
+    result = greet(**data)
 
     assert result == "Hello, Alice!"

@@ -71,6 +71,12 @@ def test_add_output():
     assert output_node.name == "OutputNode"
     assert has_path(builder.graph, node1, output_node) is True
 
+    def invalid_extractor(input_value, extra_param):
+        return input_value + 1
+
+    with pytest.raises(ValueError, match="Extractor function must have exactly one parameter"):
+        builder.add_output(node=node1, name="OutputNode", extractor=invalid_extractor)
+
 
 def test_check_circular_dependency():
     builder = GraphBuilder()

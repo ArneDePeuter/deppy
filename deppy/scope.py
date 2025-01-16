@@ -46,7 +46,7 @@ class Scope(dict):
             if self.children else {}
         )
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return json.dumps(self.dump(), indent=2)
 
     def birth(self) -> 'Scope':
