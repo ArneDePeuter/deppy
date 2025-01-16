@@ -3,6 +3,9 @@
 
 🚀 **Deppy** is a cutting-edge **dependency executor for Python** that empowers developers to design, build, and execute **DAGs (Directed Acyclic Graphs)** efficiently, effectively, and effortlessly.
 
+Deppy is a versatile tool for designing complex workflows, including:
+ - 📊 ETL Pipelines: Seamlessly extract, transform, and load data across systems.
+
 ### 🌟 Features:
 - 🛠️ **Graph Building**: Create complex workflows with minimal effort.
 - ⚡ **Optimized Execution**: Executes dependencies in the optimal order, leveraging threads and concurrency for maximum performance.
