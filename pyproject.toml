@@ -1,13 +1,12 @@
 [project]
 name = "deppy"
 version = "0.1.0"
-description = "Add your description here"
+description = "Deppy: A Python dependency executor that builds and executes DAGs efficiently, optimizing workflows with concurrency and flexibility. Perfect for managing complex dependent tasks effortlessly."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "networkx>=3.4.2",
     "pydot>=3.0.4",
-    "tqdm>=4.67.1",
 ]
 
 [dependency-groups]
