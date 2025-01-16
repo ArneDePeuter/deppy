@@ -21,9 +21,13 @@ Deppy has support for python 3.11 and above.
 To use this library, ensure you have [uv](https://docs.astral.sh/uv/) installed.
 
 Install Dependencies with:
-
 ```bash
 uv sync
+```
+
+To also install the helpers dependencies run:
+```bash
+uv sync --group helpers
 ```
 
 ### 🚀 Quick Start
