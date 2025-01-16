@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Sequence, Set
+from typing import Dict, Any, List, Sequence, Set, Iterator
 from networkx import MultiDiGraph
 
 from deppy.node import Node
@@ -10,17 +10,29 @@ class Executor:
     def __init__(self, deppy) -> None:
         self.deppy = deppy
         self.scope_map: Dict[Node, Set[Scope]] = {}
-        self.in_degrees: Dict[Node, int] = {}
         self.root: Scope = Scope()
         self.flow_graph: MultiDiGraph = MultiDiGraph()
 
-    def mark_complete(self, node: Node) -> None:
-        del self.in_degrees[node]
-        for successor in self.flow_graph.successors(node):
-            self.in_degrees[successor] -= 1
+    def batched_topological_order(self) -> Iterator[Set[Node]]:
+        """
+        Yields sets of nodes in topological order, where each set contains nodes
+        that can be processed in parallel (i.e., they have no dependencies
+        within the current batch).
 
-    def get_ready_nodes(self) -> Set[Node]:
-        return set(node for node, degree in self.in_degrees.items() if degree == 0)
+        :param flow_graph: Directed acyclic graph representing the flow.
+        :return: Iterator yielding sets of nodes.
+        """
+        in_degree = {node: self.flow_graph.in_degree(node) for node in self.flow_graph}
+
+        while in_degree:
+            ready_nodes = {node for node, degree in in_degree.items() if degree == 0}
+
+            yield ready_nodes
+
+            for node in ready_nodes:
+                del in_degree[node]
+                for successor in self.flow_graph.successors(node):
+                    in_degree[successor] -= 1
 
     @staticmethod
     def save_results(node: Node, results: List[Any], scope: Scope) -> Set[Scope]:
@@ -57,7 +69,6 @@ class Executor:
 
     def setup(self, *target_nodes: Sequence[Node]) -> None:
         self.flow_graph = self.create_flow_graph(*target_nodes)
-        self.in_degrees = {node: self.flow_graph.in_degree(node) for node in self.flow_graph}
         self.root = Scope()
         self.scope_map = {}
 

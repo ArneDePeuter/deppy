@@ -19,9 +19,6 @@ def test_execute_sync():
     root_scope = executor.execute_sync(node3)
 
     assert root_scope[node3] == 11  # (5 * 2) + 1
-    assert node1 not in executor.in_degrees
-    assert node2 not in executor.in_degrees
-    assert node3 not in executor.in_degrees
 
 
 def test_execute_sync_threaded():
@@ -41,7 +38,5 @@ def test_execute_sync_threaded():
     root_scope = executor.execute_sync(node3)
 
     assert root_scope[node3] == 11  # (5 * 2) + 1
-    assert node1 not in executor.in_degrees
-    assert node2 not in executor.in_degrees
-    assert node3 not in executor.in_degrees
+
 

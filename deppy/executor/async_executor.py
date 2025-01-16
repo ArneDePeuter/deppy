@@ -33,12 +33,11 @@ class AsyncExecutor(Executor):
         scopes = self.get_call_scopes(node)
         new_scopes = await asyncio.gather(*[self.execute_node_with_scope_async(node, scope) for scope in scopes])
         self.scope_map[node] = set.union(*new_scopes)
-        self.mark_complete(node)
 
     async def execute_async(self, *target_nodes: Sequence[Node]) -> Scope:
         self.setup(*target_nodes)
 
-        while tasks := self.get_ready_nodes():
+        for tasks in self.batched_topological_order():
             await asyncio.gather(*[self.execute_node_async(node) for node in tasks])
 
         return self.root

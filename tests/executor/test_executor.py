@@ -3,32 +3,24 @@ from deppy.node import Node
 from deppy.scope import Scope
 from deppy.executor.executor import Executor
 from deppy.ignore_result import IgnoreResult
+from deppy import Deppy
 
 
-def test_mark_complete():
-    executor = Executor(deppy=None)
-    graph = MultiDiGraph()
-    node1 = Node(func=lambda x: x + 1, name="Node1")
-    node2 = Node(func=lambda x: x * 2, name="Node2")
-    graph.add_edge(node1, node2)
-    executor.flow_graph = graph
-    executor.in_degrees = {node1: 0, node2: 1}
+def test_batched_topological_order():
+    deppy = Deppy()
+    node1 = deppy.add_node(func=lambda: 1, name="Node1")
+    node2 = deppy.add_node(func=lambda: 2, name="Node2")
+    node3 = deppy.add_node(func=lambda x: x, name="Node3")
+    deppy.add_edge(node1, node3, "x")
 
-    executor.mark_complete(node1)
+    executor = Executor(deppy=deppy)
+    executor.setup()
 
-    assert executor.in_degrees[node2] == 0
-    assert node1 not in executor.in_degrees
+    batches = list(executor.batched_topological_order())
 
-
-def test_get_ready_nodes():
-    executor = Executor(deppy=None)
-    node1 = Node(func=lambda: 1, name="Node1")
-    node2 = Node(func=lambda: 2, name="Node2")
-    executor.in_degrees = {node1: 0, node2: 1}
-
-    ready_nodes = executor.get_ready_nodes()
-
-    assert ready_nodes == {node1}
+    assert len(batches) == 2
+    assert batches[0] == {node1, node2}
+    assert batches[1] == {node3}
 
 
 def test_save_results_without_loop():
@@ -85,8 +77,6 @@ def test_setup():
     executor.setup(node2)
 
     assert executor.flow_graph.has_edge(node1, node2)
-    assert executor.in_degrees[node2] == 1
-    assert executor.in_degrees[node1] == 0
     assert isinstance(executor.root, Scope)
 
 
