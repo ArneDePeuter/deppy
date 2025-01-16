@@ -2,7 +2,9 @@ from typing import Any, Optional
 
 
 class IgnoreResult:
-    def __init__(self, reason: Optional[Any] = None, data: Optional[Any] = None) -> None:
+    def __init__(
+        self, reason: Optional[Any] = None, data: Optional[Any] = None
+    ) -> None:
         self.reason = reason
         self.data = data
 

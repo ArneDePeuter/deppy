@@ -52,7 +52,9 @@ def test_stated_kwarg_with_initial_value(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value="init", produce_function=produce_function
+    )
     def test_function(x):
         return x
 
@@ -76,7 +78,9 @@ def test_stated_kwarg_with_keys(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function, keys=["a"])
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value="init", produce_function=produce_function, keys=["a"]
+    )
     def test_function(x, a):
         return x
 
@@ -102,7 +106,12 @@ def test_stated_kwarg_with_keys_composite(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function, keys=["a", "b"])
+    @stated_kwargs_instance.stated_kwarg(
+        name="x",
+        initial_value="init",
+        produce_function=produce_function,
+        keys=["a", "b"],
+    )
     def test_function(x, a, b):
         return x
 
@@ -130,7 +139,9 @@ def test_stated_kwarg_from_result(stated_kwargs_instance):
     def produce_function(x):
         return x + 1
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value=0, produce_function=produce_function, from_result=True)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value=0, produce_function=produce_function, from_result=True
+    )
     def test_function(x):
         return x
 
@@ -146,7 +157,12 @@ def test_stated_kwarg_from_prev_state(stated_kwargs_instance):
     def produce_function(x):
         return x + 1
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value=0, produce_function=produce_function, from_prev_state=True)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x",
+        initial_value=0,
+        produce_function=produce_function,
+        from_prev_state=True,
+    )
     def test_function(x):
         return None
 
@@ -192,7 +208,9 @@ async def test_async_stated_kwarg_with_initial_value(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value="init", produce_function=produce_function
+    )
     async def test_function(x):
         return x
 
@@ -216,7 +234,9 @@ async def test_async_stated_kwarg_with_keys(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function, keys=["a"])
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value="init", produce_function=produce_function, keys=["a"]
+    )
     async def test_function(x, a):
         return x
 
@@ -242,7 +262,12 @@ async def test_async_stated_kwarg_with_keys_composite(stated_kwargs_instance):
         counter += 1
         return counter
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value="init", produce_function=produce_function, keys=["a", "b"])
+    @stated_kwargs_instance.stated_kwarg(
+        name="x",
+        initial_value="init",
+        produce_function=produce_function,
+        keys=["a", "b"],
+    )
     async def test_function(x, a, b):
         return x
 
@@ -270,7 +295,9 @@ async def test_async_stated_kwarg_from_result(stated_kwargs_instance):
     def produce_function(x):
         return x + 1
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value=0, produce_function=produce_function, from_result=True)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x", initial_value=0, produce_function=produce_function, from_result=True
+    )
     async def test_function(x):
         return x
 
@@ -286,7 +313,12 @@ async def test_async_stated_kwarg_from_prev_state(stated_kwargs_instance):
     def produce_function(x):
         return x + 1
 
-    @stated_kwargs_instance.stated_kwarg(name="x", initial_value=0, produce_function=produce_function, from_prev_state=True)
+    @stated_kwargs_instance.stated_kwarg(
+        name="x",
+        initial_value=0,
+        produce_function=produce_function,
+        from_prev_state=True,
+    )
     async def test_function(x):
         return None
 

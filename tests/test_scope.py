@@ -83,4 +83,3 @@ def test_common_branch():
     assert child2.common_branch(child1) is False
     assert parent.common_branch(child1) is True
     assert parent.common_branch(child2) is True
-

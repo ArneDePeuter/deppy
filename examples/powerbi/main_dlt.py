@@ -8,7 +8,7 @@ def main():
         pipeline_name="powerbi_octopus",
         destination="duckdb",
         dataset_name="octopus",
-        progress="log"
+        progress="log",
     )
 
     source = blueprint_to_source(PowerBI)

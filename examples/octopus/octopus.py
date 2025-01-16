@@ -13,13 +13,17 @@ class Octopus(Blueprint):
     token = Output(auth, lambda data: data["token"])
 
     dossiers = Node(api.dossiers_request)
-    dossier_id = Output(dossiers, lambda dossier: dossier["dossierKey"]["id"], loop=True)
+    dossier_id = Output(
+        dossiers, lambda dossier: dossier["dossierKey"]["id"], loop=True
+    )
 
     dossier_token_info = Node(api.dossier_token_info_request, secret=True)
     dossier_token = Output(dossier_token_info, lambda data: data["Dossiertoken"])
 
     bookyears = Node(api.bookyears_request)
-    bookyear_id = Output(bookyears, lambda bookyear: bookyear["bookyearKey"]["id"], loop=True)
+    bookyear_id = Output(
+        bookyears, lambda bookyear: bookyear["bookyearKey"]["id"], loop=True
+    )
 
     accounts = Node(api.accounts_request)
     products = Node(api.products_request)
@@ -56,5 +60,5 @@ class Octopus(Blueprint):
         (dossier_token, modified_bookings, "dossier_token"),
         (dossier_id, modified_bookings, "dossier_id"),
         (dossier_token, modified_relations, "dossier_token"),
-        (dossier_id, modified_relations, "dossier_id")
+        (dossier_id, modified_relations, "dossier_id"),
     ]

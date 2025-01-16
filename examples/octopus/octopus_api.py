@@ -6,7 +6,12 @@ from datetime import datetime
 
 
 class OctopusApi(AsyncClient):
-    def __init__(self, initial_modified_timestamp: str, state_file: str, base_url: Optional[str] = ""):
+    def __init__(
+        self,
+        initial_modified_timestamp: str,
+        state_file: str,
+        base_url: Optional[str] = "",
+    ):
         self.stated_kwargs = StatedKwargs(state_file=state_file)
         self.initial_modified_timestamp = initial_modified_timestamp
         super().__init__(base_url=base_url)
@@ -18,52 +23,51 @@ class OctopusApi(AsyncClient):
         )(self.post, "auth")
 
         self.dossiers_request = Dkr(
-            url="/dossiers",
-            headers=JsonDk({"Token": "{token}"})
+            url="/dossiers", headers=JsonDk({"Token": "{token}"})
         )(self.get, "dossiers")
 
         self.dossier_token_info_request = Dkr(
             url="/dossiers",
             headers=JsonDk({"Token": "{token}"}),
-            params=JsonDk({"dossierId": "{dossier_id}", "localeId": "{locale_id}"})
+            params=JsonDk({"dossierId": "{dossier_id}", "localeId": "{locale_id}"}),
         )(self.post, "dossier_token_info")
 
         self.accounts_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/accounts"),
             headers=JsonDk({"dossierToken": "{dossier_token}"}),
-            params=JsonDk({"bookyearId": "{bookyear_id}"})
+            params=JsonDk({"bookyearId": "{bookyear_id}"}),
         )(self.get, "accounts")
 
         self.products_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/products"),
-            headers=JsonDk({"dossierToken": "{dossier_token}"})
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
         )(self.get, "products")
 
         self.vatcodes_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/vatcodes"),
-            headers=JsonDk({"dossierToken": "{dossier_token}"})
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
         )(self.get, "vatcodes")
 
         self.relations_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/relations"),
-            headers=JsonDk({"dossierToken": "{dossier_token}"})
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
         )(self.get, "relations")
 
         self.product_groups_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/productgroups"),
-            headers=JsonDk({"dossierToken": "{dossier_token}"})
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
         )(self.get, "product_groups")
 
         self.bookyears_request = Dkr(
             url=StringDk("/dossiers/{dossier_id}/bookyears"),
-            headers=JsonDk({"dossierToken": "{dossier_token}"})
+            headers=JsonDk({"dossierToken": "{dossier_token}"}),
         )(self.get, "bookyears")
 
         self.modified_accounts_request = self.create_modified_request(
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/accounts/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"}),
             )(self.get, "modified_accounts")
         )
 
@@ -71,7 +75,9 @@ class OctopusApi(AsyncClient):
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/bookyears/-1/bookings/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"})
+                params=JsonDk(
+                    {"modifiedTimeStamp": "{modified_timestamp}", "journalTypeId": "-1"}
+                ),
             )(self.get, "modified_bookings")
         )
 
@@ -79,7 +85,7 @@ class OctopusApi(AsyncClient):
             Dkr(
                 url=StringDk("/dossiers/{dossier_id}/relations/modified"),
                 headers=JsonDk({"dossierToken": "{dossier_token}"}),
-                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"})
+                params=JsonDk({"modifiedTimeStamp": "{modified_timestamp}"}),
             )(self.get, "modified_relations")
         )
 
@@ -89,10 +95,12 @@ class OctopusApi(AsyncClient):
                 request,
                 name="modified_timestamp",
                 initial_value=self.initial_modified_timestamp,
-                produce_function=lambda: datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                produce_function=lambda: datetime.utcnow().strftime(
+                    "%Y-%m-%d %H:%M:%S.%f"
+                )[:-3],
                 keys=["dossier_id"],
             ),
-            {404}
+            {404},
         )
 
     async def __aenter__(self):

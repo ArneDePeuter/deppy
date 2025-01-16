@@ -74,8 +74,7 @@ class Executor:
 
     def get_call_scopes(self, node: Node) -> Set[Scope]:
         all_scopes = [
-            self.scope_map[pred]
-            for pred in self.flow_graph.predecessors(node)
+            self.scope_map[pred] for pred in self.flow_graph.predecessors(node)
         ]
         if not all_scopes:
             return {self.root}
@@ -83,7 +82,9 @@ class Executor:
         for iter_scopes in all_scopes:
             cur_scope = next(iter(scopes))
             qualifier_scope = next(iter(iter_scopes))
-            assert cur_scope.common_branch(qualifier_scope), "Scope joining not implemented"
+            assert cur_scope.common_branch(qualifier_scope), (
+                "Scope joining not implemented"
+            )
             # assert that we always take the lowest family member
             if len(cur_scope.path) < len(qualifier_scope.path):  # pragma: no cover
                 scopes = iter_scopes

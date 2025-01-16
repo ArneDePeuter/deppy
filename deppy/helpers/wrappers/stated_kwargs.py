@@ -47,7 +47,15 @@ class StatedKwargs:
     def __exit__(self, exc_type, exc_value, traceback):
         self._save()
 
-    def _manage_state(self, name: str, produce_function: Callable, initial_value: Any, keys: Union[Iterable[str], None], kwargs: Dict[str, Any], func: Callable):
+    def _manage_state(
+        self,
+        name: str,
+        produce_function: Callable,
+        initial_value: Any,
+        keys: Union[Iterable[str], None],
+        kwargs: Dict[str, Any],
+        func: Callable,
+    ):
         state_key = name
         if keys:
             state_key += ":" + ":".join(str(kwargs[k]) for k in keys if k in kwargs)
@@ -60,7 +68,15 @@ class StatedKwargs:
 
         return self._get(func, state_key), state_key
 
-    def _update_state(self, state_key: str, produce_function: Callable, result: Any, from_result: bool, from_prev_state: bool, func: Callable):
+    def _update_state(
+        self,
+        state_key: str,
+        produce_function: Callable,
+        result: Any,
+        from_result: bool,
+        from_prev_state: bool,
+        func: Callable,
+    ):
         if from_result:
             self._set(func, state_key, produce_function(result))
         elif from_prev_state:
@@ -78,7 +94,16 @@ class StatedKwargs:
         keys: Optional[Iterable[str]] = None,
     ):
         def decorator(func):
-            return self(func, name, produce_function, initial_value, from_result, from_prev_state, keys)
+            return self(
+                func,
+                name,
+                produce_function,
+                initial_value,
+                from_result,
+                from_prev_state,
+                keys,
+            )
+
         return decorator
 
     def __call__(
@@ -93,18 +118,26 @@ class StatedKwargs:
     ):
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
-            val, state_key = self._manage_state(name, produce_function, initial_value, keys, kwargs, func)
+            val, state_key = self._manage_state(
+                name, produce_function, initial_value, keys, kwargs, func
+            )
             kwargs[name] = val
             result = func(*args, **kwargs)
-            self._update_state(state_key, produce_function, result, from_result, from_prev_state, func)
+            self._update_state(
+                state_key, produce_function, result, from_result, from_prev_state, func
+            )
             return result
 
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
-            val, state_key = self._manage_state(name, produce_function, initial_value, keys, kwargs, func)
+            val, state_key = self._manage_state(
+                name, produce_function, initial_value, keys, kwargs, func
+            )
             kwargs[name] = val
             result = await func(*args, **kwargs)
-            self._update_state(state_key, produce_function, result, from_result, from_prev_state, func)
+            self._update_state(
+                state_key, produce_function, result, from_result, from_prev_state, func
+            )
             return result
 
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper

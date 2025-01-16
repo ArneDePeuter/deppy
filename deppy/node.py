@@ -16,12 +16,12 @@ class NodeFunctionError(Exception):
 
 class Node:
     def __init__(
-            self,
-            func: Callable[..., Any],
-            loop_strategy: Optional[LoopStrategy] = product,
-            to_thread: Optional[bool] = False,
-            name: Optional[str] = None,
-            secret: Optional[bool] = False
+        self,
+        func: Callable[..., Any],
+        loop_strategy: Optional[LoopStrategy] = product,
+        to_thread: Optional[bool] = False,
+        name: Optional[str] = None,
+        secret: Optional[bool] = False,
     ):
         self.func = func
         self.loop_vars = []

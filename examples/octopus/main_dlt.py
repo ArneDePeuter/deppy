@@ -8,7 +8,7 @@ def main():
         pipeline_name="pipeline_octopus",
         destination="duckdb",
         dataset_name="octopus",
-        progress="log"
+        progress="log",
     )
 
     source = blueprint_to_source(Octopus)

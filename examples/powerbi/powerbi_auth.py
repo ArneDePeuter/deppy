@@ -5,12 +5,12 @@ import pendulum
 
 class PowerBIAuth(httpx.Auth):
     def __init__(
-            self,
-            access_token_url: str,
-            client_id: str,
-            client_secret: str,
-            access_token_request_data: Dict[str, Any],
-            default_token_expiration: int = 3600
+        self,
+        access_token_url: str,
+        client_id: str,
+        client_secret: str,
+        access_token_request_data: Dict[str, Any],
+        default_token_expiration: int = 3600,
     ) -> None:
         self.access_token = None
         self.access_token_url = access_token_url

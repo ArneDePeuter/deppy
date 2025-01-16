@@ -49,7 +49,9 @@ def test_save_results_with_loop():
 
 
 def test_create_flow_graph():
-    mock_deppy = lambda: None
+    def mock_deppy():
+        pass
+
     mock_deppy.graph = MultiDiGraph()
     executor = Executor(deppy=mock_deppy)
 
@@ -66,7 +68,9 @@ def test_create_flow_graph():
 
 
 def test_setup():
-    mock_deppy = lambda: None
+    def mock_deppy():
+        pass
+
     mock_deppy.graph = MultiDiGraph()
     executor = Executor(deppy=mock_deppy)
 

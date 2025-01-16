@@ -1,4 +1,3 @@
-import asyncio
 from deppy import Deppy, IgnoreResult
 from itertools import product
 
@@ -33,7 +32,7 @@ async def test_deppy_execute_graph():
 
 
 async def test_unique_scope_upon_loop():
-    def l():
+    def my_list():
         return [1, 2, 3]
 
     def item1(data):
@@ -47,7 +46,7 @@ async def test_unique_scope_upon_loop():
 
     deppy = Deppy()
 
-    l_node = deppy.add_node(l)
+    l_node = deppy.add_node(my_list)
     item1_node = deppy.add_node(item1)
     item2_node = deppy.add_node(item2)
     item3_node = deppy.add_node(item3)
@@ -105,7 +104,17 @@ async def test_loopmethod_cartesian():
     deppy.add_edge(l2_node, item1_node, "data2", loop=True)
 
     result = deppy.execute()
-    assert result.query(item1_node) == [(1, "a"), (1, "b"), (1, "c"), (2, "a"), (2, "b"), (2, "c"), (3, "a"), (3, "b"), (3, "c")]
+    assert result.query(item1_node) == [
+        (1, "a"),
+        (1, "b"),
+        (1, "c"),
+        (2, "a"),
+        (2, "b"),
+        (2, "c"),
+        (3, "a"),
+        (3, "b"),
+        (3, "c"),
+    ]
 
 
 async def test_output():
@@ -159,11 +168,14 @@ async def test_node_with_dependencies():
     deppy.add_edge(dependency_node, test_node, "dep")
 
     result = await deppy.execute()
-    assert result == {dependency_node: "dependency_result", test_node: "node_result: dependency_result"}
+    assert result == {
+        dependency_node: "dependency_result",
+        test_node: "node_result: dependency_result",
+    }
 
 
 async def test_ignore_result():
-    async def l():
+    async def my_list():
         return [2, 4, 3]
 
     def filter_uneven(data):
@@ -174,7 +186,7 @@ async def test_ignore_result():
 
     deppy = Deppy()
 
-    l_node = deppy.add_node(l)
+    l_node = deppy.add_node(my_list)
     filter_node = deppy.add_node(filter_uneven)
     increment_node = deppy.add_node(increment)
 
