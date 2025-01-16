@@ -64,6 +64,9 @@ def test_blueprint_resolve_node():
     resolved_node = resolve_node(deppy, BlueprintTest.add_node1)
     assert resolved_node is deppy.add_node1
 
+    with pytest.raises(ValueError, match="Node 'add' not found in blueprint"):
+        resolve_node(deppy, Node(add))
+
 
 async def test_blueprint_context_management():
     class ObjWithContext:
@@ -111,16 +114,35 @@ async def test_blueprint_async_context_management():
         def get_amount(self):
             return self.amount
 
+    class ObjWithSyncContext:
+        def __init__(self, amount):
+            self.amount = amount
+            self.entered = False
+            self.exited = False
+
+        def __enter__(self):
+            self.entered = True
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.exited = True
+
+        def get_amount(self):
+            return self.amount
+
     class AsyncContextBlueprint(Blueprint):
         obj = Object(ObjWithAsyncContext)
+        obj2 = Object(ObjWithSyncContext)
 
         amount_node = Node(obj.get_amount)
         edges = []
 
-    async with AsyncContextBlueprint(obj=ObjWithAsyncContext(42)) as deppy:
+    async with AsyncContextBlueprint(obj=ObjWithAsyncContext(42), obj2=ObjWithSyncContext(42)) as deppy:
         assert deppy.obj.entered
+        assert deppy.obj2.entered
 
     assert deppy.obj.exited
+    assert deppy.obj2.exited
 
 
 def test_blueprint_edges_validation():
@@ -138,3 +160,8 @@ def test_blueprint_outputs():
 
     result = deppy.execute()
     assert result.query(deppy.item) == [0, 1]
+
+
+def test_invalid_object_passed_to_constructor():
+    with pytest.raises(ValueError, match="Invalid input for object 'obj'"):
+        BlueprintTest(obj=1)

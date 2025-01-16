@@ -120,7 +120,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             elif isinstance(input_, obj.type):
                 obj = input_
             else:
-                raise ValueError(f"Invalid input for object {name}")
+                raise ValueError(f"Invalid input for object '{name}'")
             object_map[name] = obj
             setattr(self, name, obj)
 
@@ -181,7 +181,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                     if hasattr(obj, "__aenter__"):
                         await obj.__aenter__()
                     else:
-                        await obj.__enter__()
+                        obj.__enter__()
                 return self
 
             async def __aexit__(self, exc_type, exc_value, traceback):
@@ -189,7 +189,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                     if hasattr(obj, "__aexit__"):
                         await obj.__aexit__(exc_type, exc_value, traceback)
                     else:
-                        await obj.__exit__(exc_type, exc_value, traceback)
+                        obj.__exit__(exc_type, exc_value, traceback)
 
             setattr(self.__class__, "__aenter__", __aenter__)
             setattr(self.__class__, "__aexit__", __aexit__)
@@ -212,5 +212,5 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
 def resolve_node(blueprint: Blueprint, node: Node) -> DeppyNode:
     actual_node = blueprint.bp_to_node_map.get(node)
     if actual_node is None:
-        raise ValueError(f"Node {node} not found in blueprint")
+        raise ValueError(f"Node '{node}' not found in blueprint")
     return actual_node

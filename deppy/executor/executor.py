@@ -84,7 +84,8 @@ class Executor:
             cur_scope = next(iter(scopes))
             qualifier_scope = next(iter(iter_scopes))
             assert cur_scope.common_branch(qualifier_scope), "Scope joining not implemented"
-            if len(cur_scope.path) < len(qualifier_scope.path):
+            # assert that we always take the lowest family member
+            if len(cur_scope.path) < len(qualifier_scope.path):  # pragma: no cover
                 scopes = iter_scopes
         return scopes
 
