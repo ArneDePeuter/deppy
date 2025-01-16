@@ -30,8 +30,8 @@ def increment(val):
 
 deppy = Deppy()
 
-l1_node = deppy.add_const([1, 2, 3])
-l2_node = deppy.add_node([2, 3, 4])
+l1_node = deppy.add_const([1, 2, 3], name="l1")
+l2_node = deppy.add_node([2, 3, 4], name="l2")
 multiply_node = deppy.add_node(multiply)
 increment_node = deppy.add_node(increment)
 
