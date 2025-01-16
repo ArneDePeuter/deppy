@@ -52,9 +52,6 @@ print(result.query(say_hello_node))  # ['Hello world!', 'Hello everyone!', 'Hell
 ### 📖 Documentation
 For detailed usage and advanced features, dive into our [comprehensive documentation](./docs).
 
-### 📚 Examples
-Explore our [examples](./examples) to see Deppy in action.
-
 ---
 
 ⚡ Transform your workflow management with **Deppy** today!
