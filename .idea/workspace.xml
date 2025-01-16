@@ -1,0 +1,778 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c36fc9d5-e202-4b32-8ad1-b49ae800080c" name="Changes" comment="CHORE: update docs" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2rOrgW5CDZgfWl1If6RUg5NqAYX" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python tests.Python tests for test_asyncclient.test_request_success.executor": "Run",
+    "Python tests.Python tests for test_blueprint.test_blueprint.executor": "Run",
+    "Python tests.Python tests for test_blueprint.test_blueprint_outputs.executor": "Debug",
+    "Python tests.Python tests for test_cache.test_cache_integration_with_node.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_call_strategy.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_constant.executor": "Debug",
+    "Python tests.Python tests for test_deppy.test_deppy_execute_graph.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_deppy_register_node.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_dkr_wrapper.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_extractor.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_get_node_by_name.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_ignore_result.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_loopmethod_cartesian.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_loopmethod_zip.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_node_execution_without_dependencies.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_node_with_dependencies.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_output.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_solo_race.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_unique_scope_upon_loop.executor": "Run",
+    "Python tests.Python tests for test_deppy.test_zip.executor": "Run",
+    "Python tests.Python tests for test_dkr.test_json_dk_resolution.executor": "Debug",
+    "Python tests.Python tests for test_dkr.test_mapping_dk_resolution.executor": "Run",
+    "Python tests.Python tests for test_dkr.test_string_dk_resolution.executor": "Run",
+    "Python tests.Python tests for test_executor.test_get_call_scopes.executor": "Debug",
+    "Python tests.Python tests for test_node.test_complex_graph_with_nested_loops.executor": "Run",
+    "Python tests.Python tests for test_node.test_node_execution_without_dependencies.executor": "Run",
+    "Python tests.Python tests for test_node.test_node_with_dependencies.executor": "Run",
+    "Python tests.Python tests for test_node.test_node_with_loop_variables.executor": "Run",
+    "Python tests.Python tests for test_node.test_node_with_loop_variables.test_node.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_stated_kwarg.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_stated_kwarg_from_prev_state.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_stated_kwarg_from_result.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_stated_kwarg_with_keys.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_stated_kwarg_with_keys_composite.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_sync_stated_kwarg.executor": "Run",
+    "Python tests.Python tests for test_stated_kwargs.test_sync_stated_kwarg_with_initial_value.executor": "Run",
+    "Python tests.Python tests in test_asyncclient.py.executor": "Run",
+    "Python tests.Python tests in test_blueprint.py.executor": "Debug",
+    "Python tests.Python tests in test_dkr.py.executor": "Run",
+    "Python tests.Python tests in test_hybrid_executor.py.executor": "Debug",
+    "Python tests.Python tests in test_stated_kwargs.py.executor": "Run",
+    "Python.dkr.executor": "Run",
+    "Python.main (1).executor": "Run",
+    "Python.main (2).executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.main2.executor": "Run",
+    "Python.main3.executor": "Run",
+    "Python.main_dlt (1).executor": "Run",
+    "Python.main_dlt.executor": "Run",
+    "Python.octopus.executor": "Run",
+    "Python.state_kwargs.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Shell Script.no gil.executor": "Run",
+    "Shell Script.normal.executor": "Run",
+    "last_opened_file_path": "/Users/arne/Documents/repos/deppy/docs",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs" />
+      <recent name="$PROJECT_DIR$/examples/octopus/.dlt" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs/helpers/wrappers" />
+      <recent name="$PROJECT_DIR$/deppy/executor" />
+      <recent name="$PROJECT_DIR$/tests/helpers" />
+      <recent name="$PROJECT_DIR$/deppy/helpers" />
+      <recent name="$PROJECT_DIR$/deppy" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.main (1)">
+    <configuration name="main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PASSWORD" value="Aqwx1379!" />
+        <env name="USER" value="i2fadmin@U11087004" />
+        <env name="SOFTWARE_HOUSE_UUID" value="79abf73a-78db-43ce-83c1-ae722f340111" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples/octopus" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/octopus/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="no gil" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="pip install httpx; python3.13t ./octopus.py" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/zsh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="false" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PASSWORD" value="Aqwx1379!" />
+        <env name="USER" value="i2fadmin@U11087004" />
+        <env name="SOFTWARE_HOUSE_UUID" value="79abf73a-78db-43ce-83c1-ae722f340111" />
+      </envs>
+      <method v="2" />
+    </configuration>
+    <configuration name="normal" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="py ./octopus.py" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/zsh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="false" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PASSWORD" value="Aqwx1379!" />
+        <env name="USER" value="i2fadmin@U11087004" />
+        <env name="SOFTWARE_HOUSE_UUID" value="79abf73a-78db-43ce-83c1-ae722f340111" />
+      </envs>
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_dkr.test_json_dk_resolution" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/helpers/wrappers" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_dkr.test_json_dk_resolution&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_executor.test_get_call_scopes" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/executor" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_executor.test_get_call_scopes&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests in test_blueprint.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_blueprint.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests in test_hybrid_executor.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="deppy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/executor" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/executor/test_hybrid_executor.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.main (1)" />
+      <item itemvalue="Python tests.Python tests for test_dkr.test_json_dk_resolution" />
+      <item itemvalue="Python tests.Python tests for test_executor.test_get_call_scopes" />
+      <item itemvalue="Python tests.Python tests in test_blueprint.py" />
+      <item itemvalue="Python tests.Python tests in test_hybrid_executor.py" />
+      <item itemvalue="Shell Script.no gil" />
+      <item itemvalue="Shell Script.normal" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main (1)" />
+        <item itemvalue="Python tests.Python tests for test_executor.test_get_call_scopes" />
+        <item itemvalue="Python tests.Python tests for test_dkr.test_json_dk_resolution" />
+        <item itemvalue="Python tests.Python tests in test_blueprint.py" />
+        <item itemvalue="Python tests.Python tests in test_hybrid_executor.py" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-7a29c1521ef0-c986f194a52a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.11799.298" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c36fc9d5-e202-4b32-8ad1-b49ae800080c" name="Changes" comment="" />
+      <created>1736441075619</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1736441075619</updated>
+      <workItem from="1736441094473" duration="22159000" />
+      <workItem from="1736504044918" duration="3426000" />
+      <workItem from="1736530446617" duration="46604000" />
+      <workItem from="1736680187582" duration="19347000" />
+      <workItem from="1736704671901" duration="4917000" />
+      <workItem from="1736715771875" duration="9793000" />
+      <workItem from="1736766272268" duration="5056000" />
+      <workItem from="1736772300235" duration="13921000" />
+      <workItem from="1736786913894" duration="32000" />
+      <workItem from="1736790237326" duration="25000" />
+      <workItem from="1736790383833" duration="1851000" />
+      <workItem from="1736849514872" duration="2283000" />
+      <workItem from="1736854611768" duration="1563000" />
+      <workItem from="1736856639128" duration="199000" />
+      <workItem from="1736857378427" duration="98000" />
+      <workItem from="1736864011151" duration="6577000" />
+      <workItem from="1736871819504" duration="1604000" />
+      <workItem from="1736878682335" duration="3969000" />
+      <workItem from="1736883005321" duration="977000" />
+      <workItem from="1736891076601" duration="5889000" />
+      <workItem from="1736937950307" duration="124000" />
+      <workItem from="1736952085277" duration="339000" />
+      <workItem from="1736963929652" duration="4223000" />
+      <workItem from="1736983876650" duration="843000" />
+      <workItem from="1737024367421" duration="573000" />
+      <workItem from="1737054302066" duration="9688000" />
+    </task>
+    <task id="LOCAL-00061" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1736709388781</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1736709388781</updated>
+    </task>
+    <task id="LOCAL-00062" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1736710839411</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1736710839411</updated>
+    </task>
+    <task id="LOCAL-00063" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1736710855049</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1736710855049</updated>
+    </task>
+    <task id="LOCAL-00064" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1736716117148</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1736716117149</updated>
+    </task>
+    <task id="LOCAL-00065" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1736718266377</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1736718266377</updated>
+    </task>
+    <task id="LOCAL-00066" summary="CHORE: tests">
+      <option name="closed" value="true" />
+      <created>1736719980732</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1736719980732</updated>
+    </task>
+    <task id="LOCAL-00067" summary="FEAT: to dlt source conversion">
+      <option name="closed" value="true" />
+      <created>1736730543720</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1736730543720</updated>
+    </task>
+    <task id="LOCAL-00068" summary="FIX: concurrency">
+      <option name="closed" value="true" />
+      <created>1736733004490</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1736733004490</updated>
+    </task>
+    <task id="LOCAL-00069" summary="CHORE: make test faster">
+      <option name="closed" value="true" />
+      <created>1736733210024</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1736733210024</updated>
+    </task>
+    <task id="LOCAL-00070" summary="FIX: fix deadlock">
+      <option name="closed" value="true" />
+      <created>1736771045549</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1736771045550</updated>
+    </task>
+    <task id="LOCAL-00071" summary="FEAT: improve dlt functionality">
+      <option name="closed" value="true" />
+      <created>1736771134040</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1736771134040</updated>
+    </task>
+    <task id="LOCAL-00072" summary="FEAT: blueprint">
+      <option name="closed" value="true" />
+      <created>1736780419813</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1736780419813</updated>
+    </task>
+    <task id="LOCAL-00073" summary="FEAT: blueprint">
+      <option name="closed" value="true" />
+      <created>1736780770077</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1736780770077</updated>
+    </task>
+    <task id="LOCAL-00074" summary="FEAT: encapsulate blueprint">
+      <option name="closed" value="true" />
+      <created>1736782082264</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1736782082264</updated>
+    </task>
+    <task id="LOCAL-00075" summary="FEAT: encapsulate blueprint">
+      <option name="closed" value="true" />
+      <created>1736782210556</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1736782210556</updated>
+    </task>
+    <task id="LOCAL-00076" summary="FEAT: cleanup">
+      <option name="closed" value="true" />
+      <created>1736782339516</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1736782339516</updated>
+    </task>
+    <task id="LOCAL-00077" summary="FEAT: cleanup">
+      <option name="closed" value="true" />
+      <created>1736783092540</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1736783092540</updated>
+    </task>
+    <task id="LOCAL-00078" summary="FIX: fix order of const and secret params">
+      <option name="closed" value="true" />
+      <created>1736783267388</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1736783267388</updated>
+    </task>
+    <task id="LOCAL-00079" summary="FIX: fix blueprint x DLT bugs">
+      <option name="closed" value="true" />
+      <created>1736785820306</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1736785820306</updated>
+    </task>
+    <task id="LOCAL-00080" summary="FEAT: pass obj to blueprint">
+      <option name="closed" value="true" />
+      <created>1736804704305</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1736804704305</updated>
+    </task>
+    <task id="LOCAL-00081" summary="FEAT: secrets of DLT + powerbi example">
+      <option name="closed" value="true" />
+      <created>1736856186351</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1736856186352</updated>
+    </task>
+    <task id="LOCAL-00082" summary="CHORE: undo secrets in dlt">
+      <option name="closed" value="true" />
+      <created>1736857457751</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1736857457751</updated>
+    </task>
+    <task id="LOCAL-00083" summary="FEAT: resolve node">
+      <option name="closed" value="true" />
+      <created>1736864202434</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1736864202434</updated>
+    </task>
+    <task id="LOCAL-00084" summary="FIX: remove solo race + take lowest scope">
+      <option name="closed" value="true" />
+      <created>1736867926498</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1736867926498</updated>
+    </task>
+    <task id="LOCAL-00085" summary="FEAT: improve performance">
+      <option name="closed" value="true" />
+      <created>1736868892647</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1736868892647</updated>
+    </task>
+    <task id="LOCAL-00086" summary="FEAT: sync and async executor">
+      <option name="closed" value="true" />
+      <created>1736881922127</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1736881922128</updated>
+    </task>
+    <task id="LOCAL-00087" summary="FEAT: sync and async executor">
+      <option name="closed" value="true" />
+      <created>1736881999514</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1736881999514</updated>
+    </task>
+    <task id="LOCAL-00088" summary="FEAT: sync and async executor">
+      <option name="closed" value="true" />
+      <created>1736882121720</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1736882121720</updated>
+    </task>
+    <task id="LOCAL-00089" summary="CHORE: todo">
+      <option name="closed" value="true" />
+      <created>1736882189691</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1736882189691</updated>
+    </task>
+    <task id="LOCAL-00090" summary="CHORE: update examples">
+      <option name="closed" value="true" />
+      <created>1736882629458</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1736882629458</updated>
+    </task>
+    <task id="LOCAL-00091" summary="FEAT: deppy.execute">
+      <option name="closed" value="true" />
+      <created>1736884032069</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1736884032069</updated>
+    </task>
+    <task id="LOCAL-00092" summary="FEAT: remove recursion - improve performance">
+      <option name="closed" value="true" />
+      <created>1736891468649</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1736891468649</updated>
+    </task>
+    <task id="LOCAL-00093" summary="FEAT: hybrid executor">
+      <option name="closed" value="true" />
+      <created>1736892502139</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1736892502139</updated>
+    </task>
+    <task id="LOCAL-00094" summary="FEAT: hybrid executor">
+      <option name="closed" value="true" />
+      <created>1736892660557</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1736892660557</updated>
+    </task>
+    <task id="LOCAL-00095" summary="FEAT: multithreading">
+      <option name="closed" value="true" />
+      <created>1736933869914</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1736933869914</updated>
+    </task>
+    <task id="LOCAL-00096" summary="CHORE: cleanup code">
+      <option name="closed" value="true" />
+      <created>1736952399865</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1736952399865</updated>
+    </task>
+    <task id="LOCAL-00097" summary="FEAT: tests">
+      <option name="closed" value="true" />
+      <created>1736968285021</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1736968285022</updated>
+    </task>
+    <task id="LOCAL-00098" summary="FIX: remove unecessary sub scope">
+      <option name="closed" value="true" />
+      <created>1736984040311</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1736984040311</updated>
+    </task>
+    <task id="LOCAL-00099" summary="FEAT: batched_topological_order">
+      <option name="closed" value="true" />
+      <created>1737024943946</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1737024943946</updated>
+    </task>
+    <task id="LOCAL-00100" summary="FEAT: test coverage">
+      <option name="closed" value="true" />
+      <created>1737057573954</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1737057573955</updated>
+    </task>
+    <task id="LOCAL-00101" summary="CHORE: documentation">
+      <option name="closed" value="true" />
+      <created>1737062440586</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062440586</updated>
+    </task>
+    <task id="LOCAL-00102" summary="CHORE: documentation">
+      <option name="closed" value="true" />
+      <created>1737062669571</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062669571</updated>
+    </task>
+    <task id="LOCAL-00103" summary="CHORE: documentation">
+      <option name="closed" value="true" />
+      <created>1737062711301</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062711301</updated>
+    </task>
+    <task id="LOCAL-00104" summary="CHORE: update pyproject.toml">
+      <option name="closed" value="true" />
+      <created>1737062818848</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062818848</updated>
+    </task>
+    <task id="LOCAL-00105" summary="CHORE: ignore uv.lock">
+      <option name="closed" value="true" />
+      <created>1737062843177</created>
+      <option name="number" value="00105" />
+      <option name="presentableId" value="LOCAL-00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062843177</updated>
+    </task>
+    <task id="LOCAL-00106" summary="CHORE: cleanup">
+      <option name="closed" value="true" />
+      <created>1737062903569</created>
+      <option name="number" value="00106" />
+      <option name="presentableId" value="LOCAL-00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062903569</updated>
+    </task>
+    <task id="LOCAL-00107" summary="CHORE: update README.md">
+      <option name="closed" value="true" />
+      <created>1737062964931</created>
+      <option name="number" value="00107" />
+      <option name="presentableId" value="LOCAL-00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1737062964931</updated>
+    </task>
+    <task id="LOCAL-00108" summary="FIX: fix check">
+      <option name="closed" value="true" />
+      <created>1737063233793</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1737063233793</updated>
+    </task>
+    <task id="LOCAL-00109" summary="CHORE: update docs">
+      <option name="closed" value="true" />
+      <created>1737063271645</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1737063271645</updated>
+    </task>
+    <option name="localTasksCounter" value="110" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="FEAT: pass obj to blueprint" />
+    <MESSAGE value="FEAT: secrets of DLT + powerbi example" />
+    <MESSAGE value="CHORE: undo secrets in dlt" />
+    <MESSAGE value="FEAT: resolve node" />
+    <MESSAGE value="FIX: remove solo race + take lowest scope" />
+    <MESSAGE value="FEAT: improve performance" />
+    <MESSAGE value="FEAT: sync and async executor" />
+    <MESSAGE value="CHORE: todo" />
+    <MESSAGE value="CHORE: update examples" />
+    <MESSAGE value="FEAT: deppy.execute" />
+    <MESSAGE value="FEAT: remove recursion - improve performance" />
+    <MESSAGE value="FEAT: hybrid executor" />
+    <MESSAGE value="FEAT: multithreading" />
+    <MESSAGE value="CHORE: cleanup code" />
+    <MESSAGE value="FEAT: tests" />
+    <MESSAGE value="FIX: remove unecessary sub scope" />
+    <MESSAGE value="FEAT: batched_topological_order" />
+    <MESSAGE value="FEAT: test coverage" />
+    <MESSAGE value="CHORE: documentation" />
+    <MESSAGE value="CHORE: update pyproject.toml" />
+    <MESSAGE value="CHORE: ignore uv.lock" />
+    <MESSAGE value="CHORE: cleanup" />
+    <MESSAGE value="CHORE: update README.md" />
+    <MESSAGE value="FIX: fix check" />
+    <MESSAGE value="CHORE: update docs" />
+    <option name="LAST_COMMIT_MESSAGE" value="CHORE: update docs" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/deppy$main3.coverage" NAME="main3 Coverage Results" MODIFIED="1736562690742" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/deppy$octopus.coverage" NAME="octopus Coverage Results" MODIFIED="1736791092041" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/octopus" />
+    <SUITE FILE_PATH="coverage/deppy$main_dlt__1_.coverage" NAME="main_dlt (1) Coverage Results" MODIFIED="1736864135700" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/powerbi" />
+    <SUITE FILE_PATH="coverage/deppy$state_kwargs.coverage" NAME="state_kwargs Coverage Results" MODIFIED="1736691283965" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deppy/helpers" />
+    <SUITE FILE_PATH="coverage/deppy$main__1_.coverage" NAME="main (1) Coverage Results" MODIFIED="1737059420445" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/deppy$main2.coverage" NAME="main2 Coverage Results" MODIFIED="1736563089293" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/deppy$main.coverage" NAME="main Coverage Results" MODIFIED="1736984239959" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/deppy$main_dlt.coverage" NAME="main_dlt Coverage Results" MODIFIED="1736785787488" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/octopus" />
+    <SUITE FILE_PATH="coverage/deppy$.coverage" NAME=" Coverage Results" MODIFIED="1737056856026" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/executor" />
+    <SUITE FILE_PATH="coverage/deppy$main__2_.coverage" NAME="main (2) Coverage Results" MODIFIED="1736883770096" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/deppy$dkr.coverage" NAME="dkr Coverage Results" MODIFIED="1736613738889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deppy/wrappers" />
+  </component>
+</project>
