@@ -102,12 +102,18 @@ class BlueprintMeta(type):
             elif attr_name == "edges" and isinstance(attr_value, Iterable):
                 edges = attr_value
 
+        type_annotations = dct.get("__annotations__", {})
+        config_annotations = {name: type_annotations.get(name) for name in consts}
+        secret_annotations = {name: type_annotations.get(name) for name in secrets}
+
         dct["_nodes"] = nodes
         dct["_consts"] = consts
         dct["_secrets"] = secrets
         dct["_edges"] = edges
         dct["_outputs"] = outputs
         dct["_objects"] = objects
+        dct["_config_annotations"] = config_annotations
+        dct["_secret_annotations"] = secret_annotations
 
         return super().__new__(cls, name, bases, dct)
 
@@ -130,16 +136,19 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             object_map[name] = obj
             setattr(self, name, obj)
 
-        i = 0
+        indeces = {}
         for name, bp in self._nodes.items():
             if isinstance(bp.func, ObjectAccessor):
+                if bp not in indeces:
+                    indeces[bp] = 0
+                i = indeces[bp]
                 obj = object_map[bp.func.name]
                 for access in bp.func.accesses_methods[i]:
                     obj = getattr(obj, access)
                 node = DeppyNode(
                     obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret
                 )
-                i += 1
+                indeces[bp] += 1
                 setattr(self, name, node)
             else:
                 node = bp
@@ -191,7 +200,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 for obj in object_map.values():
                     if hasattr(obj, "__aenter__"):
                         await obj.__aenter__()
-                    else:
+                    elif hasattr(obj, "__enter__"):
                         obj.__enter__()
                 return self
 
@@ -199,7 +208,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 for obj in object_map.values():
                     if hasattr(obj, "__aexit__"):
                         await obj.__aexit__(exc_type, exc_value, traceback)
-                    else:
+                    elif hasattr(obj, "__exit__"):
                         obj.__exit__(exc_type, exc_value, traceback)
 
             setattr(self.__class__, "__aenter__", __aenter__)

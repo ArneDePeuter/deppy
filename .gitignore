@@ -6,6 +6,7 @@ uv.lock
 .idea
 # C extensions
 *.so
+_storage
 
 # Distribution / packaging
 .Python

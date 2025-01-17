@@ -1,13 +1,13 @@
-from typing import Optional, Iterable, TypeVar, Any, Set, Dict, Type
+from typing import Optional, Iterable, TypeVar, Any, Dict, Type
 import inspect
-from dlt.common.configuration.specs import BaseConfiguration, configspec
-from dlt.common.typing import TSecretValue
+import copy
+
 import dlt
-from dlt.sources import DltResource, DltSource
+from dlt.common.configuration.specs import BaseConfiguration, configspec
+from dlt.extract.source import DltResource, SourceFactory
 from dlt.common.configuration.resolve import resolve_configuration
 
 from deppy.blueprint import Node, Blueprint, resolve_node
-from deppy import Scope, AsyncExecutor, SyncExecutor
 from deppy.node import Node as DeppyNode
 
 BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
@@ -15,18 +15,14 @@ BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
 
 def create_spec(
     source_name: str,
-    configs: Set[str],
-    secrets: Set[str],
+    configs: Dict[str, type],
     objects: Dict[str, Type[BaseConfiguration]],
 ) -> Type[BaseConfiguration]:
     annotations: Dict[str, Any] = {}
     defaults: Dict[str, Any] = {}
-    for config in configs:
-        annotations[config] = Any
+    for config, type_ in configs.items():
+        annotations[config] = type_
         defaults[config] = None
-    for secret in secrets:
-        annotations[secret] = TSecretValue
-        defaults[secret] = None
     for object_name, object_spec in objects.items():
         annotations[object_name] = object_spec
         defaults[object_name] = None
@@ -36,46 +32,77 @@ def create_spec(
     return configspec(new_class)  # type: ignore[return-value]
 
 
-def get_object_params(obj: Any) -> Set[str]:
-    return set(inspect.signature(obj.__init__).parameters.keys()) - {"self"}
+def get_object_params(obj: Any) -> Dict[str, type]:
+    d = inspect.signature(obj.__init__).parameters
+
+    def get_annotation(param):
+        return param.annotation if param.annotation != inspect.Parameter.empty else Any
+
+    return {k: get_annotation(v) for k, v in d.items() if k != "self"}
 
 
 def create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
-    params = inspect.signature(obj.__init__).parameters
-    secrets = set()
-    configs = set()
-    for k, v in params.items():
-        if k == "self":
-            continue
-        if isinstance(v.annotation, TSecretValue):
-            secrets.add(k)
+    configs = get_object_params(obj)
+    return create_spec(obj_name, configs, objects={})
+
+
+def create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
+    async_func = inspect.iscoroutinefunction(deppy.execute)
+    async_context = hasattr(deppy, "__aenter__") and hasattr(deppy, "__aexit__")
+    sync_context = hasattr(deppy, "__enter__") and hasattr(deppy, "__exit__")
+
+    async def extract_async(
+        deppy_=deppy,
+        target_nodes_=target_nodes,
+        async_context_=async_context,
+        sync_context_=sync_context,
+    ):
+        if async_context_:
+            async with deppy_:
+                if async_func:
+                    yield await deppy_.execute(*target_nodes_)
+                else:
+                    yield deppy_.execute(*target_nodes_)
+        elif sync_context_:
+            with deppy:
+                yield await deppy_.execute(*target_nodes_)
         else:
-            configs.add(k)
-    return create_spec(obj_name, configs, secrets, {})
+            yield await deppy_.execute(*target_nodes_)
+
+    def extract_sync(
+        deppy_=deppy, target_nodes_=target_nodes, sync_context_=sync_context
+    ):
+        if sync_context_:
+            with deppy_:
+                yield deppy_.execute(*target_nodes_)
+        else:
+            yield deppy_.execute(*target_nodes_)
+
+    return extract_async if (async_func or async_context) else extract_sync
 
 
 def blueprint_to_source(
     blueprint: Type[BlueprintSubclass],
     target_nodes: Optional[Iterable[Node]] = None,
     exclude_for_storing: Optional[Iterable[Node]] = None,
-) -> DltSource:
+) -> SourceFactory:
     name = blueprint.__name__
     target_nodes = target_nodes or []
 
     exclude_for_storing = exclude_for_storing or []
-    secrets = set(blueprint._secrets.keys())
-    configs = set(blueprint._consts.keys())
+    configs = copy.deepcopy(blueprint._config_annotations)
+    configs.update(blueprint._secret_annotations)
     objects = {
         object_name: create_object_spec(object_name, object_accesor.type)
         for object_name, object_accesor in blueprint._objects.items()
     }
 
-    spec = create_spec(name, configs, secrets, objects)
+    spec = create_spec(name, configs, objects)
 
     @dlt.source(name=f"{name}_source")
     def source():
         resolved_spec = resolve_configuration(spec(), sections=("sources", name))  # type: ignore[operator]
-        init_kwargs = {k: getattr(resolved_spec, k) for k in (configs | secrets)}
+        init_kwargs = {k: getattr(resolved_spec, k) for k in configs}
         init_kwargs.update(
             {
                 obj_name: {
@@ -92,33 +119,9 @@ def blueprint_to_source(
             resolve_node(deppy, n) for n in exclude_for_storing
         ]
 
-        @dlt.resource(selected=False, name=f"{deppy._name}_extract")
-        async def extract_async() -> DltResource:
-            func = AsyncExecutor(deppy).execute(*actual_target_nodes)
+        extract_func = create_extract_func(deppy, actual_target_nodes)
+        extract = dlt.resource(selected=False, name=f"{name}_extract")(extract_func)
 
-            if hasattr(deppy, "__aenter__"):
-                async with deppy:
-                    yield await func
-            elif hasattr(deppy, "__enter__"):
-                with deppy:
-                    yield await func
-            else:
-                yield await func
-
-        @dlt.resource(selected=False, name=f"{deppy._name}_extract")
-        def extract_sync() -> DltResource:
-            func = SyncExecutor(deppy).execute(*actual_target_nodes)
-
-            if hasattr(deppy, "__aenter__"):
-                async with deppy:
-                    yield func
-            elif hasattr(deppy, "__enter__"):
-                with deppy:
-                    yield func
-            else:
-                yield func
-
-        extract = extract_async if deppy.has_async_nodes() else extract_sync
         resources = [extract]
         nodes: list[DeppyNode] = (
             deppy.graph.nodes if len(actual_target_nodes) == 0 else actual_target_nodes
@@ -133,11 +136,11 @@ def blueprint_to_source(
                     continue
 
             @dlt.transformer(data_from=extract, name=n.name)
-            def get_node_data(result: Scope, node: Node = n) -> DltResource:
+            def get_node_data(result, node: Node = n) -> DltResource:
                 yield result.query(node, ignored_results=False)
 
             resources.append(get_node_data)
 
         return resources
 
-    return source()
+    return source

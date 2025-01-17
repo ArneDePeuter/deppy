@@ -21,5 +21,48 @@ def blueprint_to_source(
 
 Secret nodes are automatically excluded from storing.
 
+For proper configuration use type annotations so the types can be properly converted.
+To type an object simply add type annotations to the object's __init__ parameters.
+To type a config and a secret add the type annotation to the definition.
+
+Example:
+```python
+from deppy.blueprint import Blueprint, Object, Node, Const, Secret, Output
+from deppy.helpers.DLT import blueprint_to_source
+import dlt
+
+def add(a, b):
+    return a + b
+
+class Obj:
+    def __init__(self, amount: int):
+        self.list = list(range(amount))
+
+    def get_list(self):
+        return self.list
+
+class Example(Blueprint):
+    obj = Object(Obj)
+
+    my_const: int = Const()
+    my_secret: int = Secret()
+
+    add_node1 = Node(add)
+    add_node2 = Node(add)
+    items = Node(obj.get_list)
+    item = Output(items, loop=True)
+
+    edges = [
+        (my_const, add_node1, "a"),
+        (my_secret, add_node1, "b"),
+        (add_node1, add_node2, "a"),
+        (item, add_node2, "b"),
+    ]
+
+source = blueprint_to_source(Example)
+
+pipeline = dlt.pipeline(pipeline_name="my_example", destination="duckdb", full_refresh=True)
+pipeline.run(source())
+```
 ---
 
