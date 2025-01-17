@@ -1,6 +1,6 @@
 [project]
 name = "dep-python"
-version = "1.0.2"
+version = "1.0.3"
 description = "Deppy: A Python dependency executor that builds and executes DAGs efficiently, optimizing workflows with concurrency and flexibility. Perfect for managing complex dependent tasks effortlessly."
 readme = "README.md"
 requires-python = ">=3.11"

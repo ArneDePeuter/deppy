@@ -139,16 +139,16 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
         indeces = {}
         for name, bp in self._nodes.items():
             if isinstance(bp.func, ObjectAccessor):
-                if bp not in indeces:
-                    indeces[bp] = 0
-                i = indeces[bp]
+                if bp.func not in indeces:
+                    indeces[bp.func] = 0
+                i = indeces[bp.func]
                 obj = object_map[bp.func.name]
                 for access in bp.func.accesses_methods[i]:
                     obj = getattr(obj, access)
                 node = DeppyNode(
                     obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret
                 )
-                indeces[bp] += 1
+                indeces[bp.func] += 1
                 setattr(self, name, node)
             else:
                 node = bp
