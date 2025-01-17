@@ -86,7 +86,7 @@ def blueprint_to_source(
     target_nodes: Optional[Iterable[Node]] = None,
     exclude_for_storing: Optional[Iterable[Node]] = None,
 ) -> SourceFactory:
-    name = blueprint.__name__
+    name = blueprint.__name__.lower()
     target_nodes = target_nodes or []
 
     exclude_for_storing = exclude_for_storing or []
