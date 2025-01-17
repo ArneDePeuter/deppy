@@ -492,3 +492,32 @@ def test_async_no_context(monkeypatch):
             rows = cursor.fetchall()
             assert len(rows) == 3
             assert all(item in rows[i] for item, i in zip([7, 8, 9], range(3)))
+
+
+def test_resource_kwargs():
+    async def get_items():
+        return [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+            {"id": 3, "name": "Charlie"},
+            {"id": 4, "name": "Jeff"},
+        ]
+
+    class MyTest(Blueprint):
+        items = Node(get_items)
+        item = Output(items, loop=True)
+
+    source = blueprint_to_source(MyTest, resource_kwargs={MyTest.item: {"primary_key": "id"}})
+    pipeline = dlt.pipeline(pipeline_name="testpipeline", destination="duckdb", full_refresh=True)
+    pipeline.run(source())
+
+    tables = pipeline.default_schema.data_tables()
+    assert "primary_key" in tables[0]["columns"]["id"]
+    assert tables[0]["columns"]["id"]["primary_key"]
+
+    source = blueprint_to_source(MyTest, resource_kwargs={})
+    pipeline = dlt.pipeline(pipeline_name="testpipeline", destination="duckdb", full_refresh=True)
+    pipeline.run(source())
+
+    tables = pipeline.default_schema.data_tables()
+    assert "primary_key" not in tables[0]["columns"]["id"]

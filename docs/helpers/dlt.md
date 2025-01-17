@@ -66,3 +66,12 @@ pipeline.run(source())
 ```
 ---
 
+
+To pass extra kwargs for the resource for a specific node you can use the `extra_kwargs` parameter.
+
+For example to define a primary key for a resource:
+```python
+blueprint_to_source(SomeBlueprint, resource_kwargs={SomeBlueprint.item: {"primary_key": "id"}})
+```
+
+For more extra kwargs check the `dlt` documentation.

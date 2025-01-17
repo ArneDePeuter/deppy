@@ -85,9 +85,11 @@ def blueprint_to_source(
     blueprint: Type[BlueprintSubclass],
     target_nodes: Optional[Iterable[Node]] = None,
     exclude_for_storing: Optional[Iterable[Node]] = None,
+    resource_kwargs: Optional[Dict[Node, Dict[str, Any]]] = None,
 ) -> SourceFactory:
     name = blueprint.__name__.lower()
     target_nodes = target_nodes or []
+    resource_kwargs = resource_kwargs or {}
 
     exclude_for_storing = exclude_for_storing or []
     configs = copy.deepcopy(blueprint._config_annotations)
@@ -118,6 +120,9 @@ def blueprint_to_source(
         actual_exclude_for_storing = [
             resolve_node(deppy, n) for n in exclude_for_storing
         ]
+        actual_resource_kwargs = {
+            resolve_node(deppy, n): kwargs for n, kwargs in resource_kwargs.items()
+        }
 
         extract_func = create_extract_func(deppy, actual_target_nodes)
         extract = dlt.resource(selected=False, name=f"{name}_extract")(extract_func)
@@ -135,7 +140,12 @@ def blueprint_to_source(
                 if n.name in deppy._consts:
                     continue
 
-            @dlt.transformer(data_from=extract, name=n.name)
+            kwargs = actual_resource_kwargs.get(n, {})
+            kwargs["data_from"] = extract
+            if "name" not in kwargs:
+                kwargs["name"] = n.name
+
+            @dlt.transformer(**kwargs)
             def get_node_data(result, node: Node = n) -> DltResource:
                 yield result.query(node, ignored_results=False)
 
