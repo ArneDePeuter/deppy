@@ -18,17 +18,22 @@ Deppy is a versatile tool for designing complex workflows, including:
 
 Deppy has support for python 3.11 and above.
 
-To use this library, ensure you have [uv](https://docs.astral.sh/uv/) installed.
+To install Deppy, simply run:
 
-Install Dependencies with:
 ```bash
-uv sync
+pip install dep-python
 ```
 
-To also install the helpers dependencies run:
+If you want to use the helpers which have external dependencies, you can install them by running:
+
 ```bash
-uv sync --group helpers
+pip install 'dep-python[<helper>]'
 ```
+
+Supported helpers with external dependencies are:
+- asyncclient
+- dlt
+
 
 ### 🚀 Quick Start
 
