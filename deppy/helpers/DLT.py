@@ -147,7 +147,7 @@ def blueprint_to_source(
 
             @dlt.transformer(**kwargs)
             def get_node_data(result, node: Node = n) -> DltResource:
-                yield result.query(node, ignored_results=False)
+                yield from result.query(node, ignored_results=False)
 
             resources.append(get_node_data)
 
