@@ -1,7 +1,6 @@
 from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
-from functools import wraps
 
-from .node import Node as DeppyNode
+from .node import Node as DeppyNode, LoopStrategy, product
 from .deppy import Deppy
 
 
@@ -17,15 +16,9 @@ class ObjectAccessor:
         self.accesses_methods = []
         self.curr_access = []
         self.name = None
-        self.ignore = False
 
     def __getattr__(self, item):
-        if self.ignore:
-            if item == "$":
-                self.ignore = False
-            return self
         if item == "*":
-            self.ignore = True
             self.accesses_methods.append(self.curr_access)
             self.curr_access = []
             return self
@@ -37,21 +30,33 @@ def Object(t: Type[T]) -> T:
     return ObjectAccessor(t)
 
 
-def wrapper(function: Callable[P, FT]) -> Callable[P, DeppyNode]:
-    @wraps(function)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> DeppyNode:
-        func = args[0]
+class Node:
+    def __init__(
+        self,
+        func: Callable[..., Any],
+        loop_strategy: Optional[LoopStrategy] = product,
+        to_thread: Optional[bool] = False,
+        name: Optional[str] = None,
+        secret: Optional[bool] = False,
+    ):
         if isinstance(func, ObjectAccessor):
             func.__getattr__("*")
-        obj = function(*args, **kwargs)
-        if isinstance(func, ObjectAccessor):
-            func.__getattr__("$")
-        return obj
+        self.func = func
+        self.loop_strategy = loop_strategy
+        self.to_thread = to_thread
+        self.name = name or func.__name__
+        self.secret = secret
+        self.inputs = []
 
-    return wrapper
+    def __repr__(self):  # pragma: no cover
+        return f"<Node {self.name}>"
 
+    def __str__(self):  # pragma: no cover
+        return self.name
 
-Node = wrapper(DeppyNode)
+    def Input(self, from_node: Any, input_name: str, loop: Optional[bool] = False) -> "Node":
+        self.inputs.append((from_node, input_name, loop))
+        return self
 
 
 class Output:
@@ -88,7 +93,7 @@ class BlueprintMeta(type):
         edges = []
 
         for attr_name, attr_value in dct.items():
-            if isinstance(attr_value, DeppyNode):
+            if isinstance(attr_value, Node):
                 nodes[attr_name] = attr_value
             elif isinstance(attr_value, Const):
                 consts[attr_name] = attr_value
@@ -138,6 +143,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
 
         indeces = {}
         for name, bp in self._nodes.items():
+            node = DeppyNode(bp.func, bp.loop_strategy, bp.to_thread, name, bp.secret)
             if isinstance(bp.func, ObjectAccessor):
                 if bp.func not in indeces:
                     indeces[bp.func] = 0
@@ -145,16 +151,11 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 obj = object_map[bp.func.name]
                 for access in bp.func.accesses_methods[i]:
                     obj = getattr(obj, access)
-                node = DeppyNode(
-                    obj, bp.loop_strategy, bp.to_thread, bp.name, bp.secret
-                )
+                node.func = obj
                 indeces[bp.func] += 1
-                setattr(self, name, node)
-            else:
-                node = bp
-            node.name = name
             self.bp_to_node_map[bp] = node
             self.graph.add_node(node)
+            setattr(self, name, node)
 
         for name, output in self._outputs.items():
             bp = output
@@ -184,6 +185,12 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             v = self.bp_to_node_map[edge[1]]
 
             self.add_edge(u, v, *(edge[2:]))
+
+        for node in self._nodes.values():
+            actual_node = self.bp_to_node_map[node]
+            for from_node, input_name, loop in node.inputs:
+                from_node = resolve_node(self, from_node)
+                self.add_edge(from_node, actual_node, input_name, loop)
 
         async_context_mngr = False
         sync_context_mngr = False

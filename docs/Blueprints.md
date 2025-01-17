@@ -29,20 +29,26 @@ class Obj:
 
 
 class ExampleBlueprint(Blueprint):
+    # Define objects which you can use to refer to the object's methods
     obj = Object(Obj)
+    
+    # Define constants and secrets
     const = Const()
     secret = Secret()
-    add_node1 = Node(add)
-    add_node2 = Node(add)
+    
     items = Node(obj.get_list)
     item = Output(items, loop=True)
+    
+    add_node1 = Node(add)
+    add_node2 = Node(add)
+    # Define inputs like this: via Input method
+    add_node2.Input(add_node1, "a")
+    add_node2.Input(item, "b")
 
-    # Define edges (dependencies between nodes)
+    # Define inputs like this: via edges
     edges = [
         (const, add_node1, "a"),
         (secret, add_node1, "b"),
-        (add_node1, add_node2, "a"),
-        (item, add_node2, "b"),
     ]
 
 # Call generated __init__ method

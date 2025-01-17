@@ -169,3 +169,20 @@ def test_blueprint_outputs():
 def test_invalid_object_passed_to_constructor():
     with pytest.raises(ValueError, match="Invalid input for object 'obj'"):
         BlueprintTest(obj=1)
+
+
+def test_blueprint_input():
+    def add(a, b):
+        return a + b
+
+    class BP(Blueprint):
+        const = Const()
+        secret = Secret()
+        add_node = Node(add)
+        add_node.Input(const, "a").Input(secret, "b")
+
+    bp = BP(const=1, secret=2)
+    result = bp.execute()
+    assert result.query(bp.add_node) == [3]
+    assert result.query(bp.const) == [1]
+    assert result.query(bp.secret) == [2]
