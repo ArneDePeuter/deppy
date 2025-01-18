@@ -177,12 +177,11 @@ def test_blueprint_input():
 
     class BP(Blueprint):
         const = Const()
-        secret = Secret()
-        add_node = Node(add)
-        add_node.Input(const, "a").Input(secret, "b")
+        b = Secret()
+        add_node = Node(add).Input(const, "a").Input(b)
 
-    bp = BP(const=1, secret=2)
+    bp = BP(const=1, b=2)
     result = bp.execute()
     assert result.query(bp.add_node) == [3]
     assert result.query(bp.const) == [1]
-    assert result.query(bp.secret) == [2]
+    assert result.query(bp.b) == [2]

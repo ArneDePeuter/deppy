@@ -1,7 +1,0 @@
-digraph {
-add_node;
-const;
-secret;
-const -> add_node [key=a, loop=False];
-secret -> add_node [key=b, loop=False];
-}

@@ -3,6 +3,7 @@
 Blueprints provide a structured way to define a Deppy graph.
 It creates a custom __init__ method depending on the defined objects, constants and secrets.
 It creates a context manager based on the defined objects.
+If there is an object with an async context manager, the blueprint will generate an async context manager instead.
 
 Here is an example to illustrate the usage of blueprints:
 
@@ -62,4 +63,20 @@ with deppy:
     print(result.query(deppy.add_node2))   # [30, 31, 32, 33, 34]
 ```
 
-If there is an object with an async context manager, the blueprint will generate an async context manager instead.
+The `Input` param has an optional field `input_name` which refers to the input parameter name of the function. By default it takes the name of the from_node.
+
+For example:
+```python
+from deppy.blueprint import Blueprint, Node, Const, Secret
+
+def add(a, b):
+    return a + b
+
+class BP(Blueprint):
+    a = Const()
+    b = Secret()
+    add_node = Node(add).Input(a).Input(b)
+
+deppy = BP(a=10, b=20)
+print(deppy.execute().query(deppy.add_node))  # [30]
+```

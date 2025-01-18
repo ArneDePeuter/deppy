@@ -13,15 +13,14 @@ FT = TypeVar("FT")
 class ObjectAccessor:
     def __init__(self, t):
         self.type = t
-        self.accesses_methods = []
         self.curr_access = []
         self.name = None
 
     def __getattr__(self, item):
         if item == "*":
-            self.accesses_methods.append(self.curr_access)
+            cur = self.curr_access
             self.curr_access = []
-            return self
+            return cur
         self.curr_access.append(item)
         return self
 
@@ -40,7 +39,9 @@ class Node:
         secret: Optional[bool] = False,
     ):
         if isinstance(func, ObjectAccessor):
-            func.__getattr__("*")
+            self.accesses = func.__getattr__("*")
+        else:
+            self.accesses = []
         self.func = func
         self.loop_strategy = loop_strategy
         self.to_thread = to_thread
@@ -54,7 +55,7 @@ class Node:
     def __str__(self):  # pragma: no cover
         return self.name
 
-    def Input(self, from_node: Any, input_name: str, loop: Optional[bool] = False) -> "Node":
+    def Input(self, from_node: Any, input_name: Optional[str] = None, loop: Optional[bool] = False) -> "Node":
         self.inputs.append((from_node, input_name, loop))
         return self
 
@@ -141,18 +142,13 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             object_map[name] = obj
             setattr(self, name, obj)
 
-        indeces = {}
         for name, bp in self._nodes.items():
             node = DeppyNode(bp.func, bp.loop_strategy, bp.to_thread, name, bp.secret)
             if isinstance(bp.func, ObjectAccessor):
-                if bp.func not in indeces:
-                    indeces[bp.func] = 0
-                i = indeces[bp.func]
                 obj = object_map[bp.func.name]
-                for access in bp.func.accesses_methods[i]:
+                for access in bp.accesses:
                     obj = getattr(obj, access)
                 node.func = obj
-                indeces[bp.func] += 1
             self.bp_to_node_map[bp] = node
             self.graph.add_node(node)
             setattr(self, name, node)
@@ -190,6 +186,8 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             actual_node = self.bp_to_node_map[node]
             for from_node, input_name, loop in node.inputs:
                 from_node = resolve_node(self, from_node)
+                if input_name is None:
+                    input_name = from_node.name
                 self.add_edge(from_node, actual_node, input_name, loop)
 
         async_context_mngr = False
