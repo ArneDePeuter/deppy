@@ -35,7 +35,7 @@ The `DogApi` class inherits from `AsyncClient` and provides the following method
 - 📷 **Get Breed Images**: Retrieves images for a specific breed.  
 - 📸 **Get Sub-Breed Images**: Retrieves images for a specific sub-breed.  
 
-These methods correspond directly to the API documentation for easy use. ✅
+These methods correspond 1-1 to the API documentation so this step should straightforward. ✅
 
 ---
 
@@ -69,7 +69,7 @@ class DogDeppy(Blueprint):
 - **Step 4**: Fetch images for breeds and sub-breeds.  
 
 ### Visual Representation 🌟
-The result flow might look something like this:  
+The result flow looks like this:  
 ![Result Flow](images/img.png)
 
 ---
