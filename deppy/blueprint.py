@@ -1,4 +1,4 @@
-from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
+from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec, Union
 
 from .node import Node as DeppyNode, LoopStrategy, product
 from .deppy import Deppy
@@ -29,7 +29,17 @@ def Object(t: Type[T]) -> T:
     return ObjectAccessor(t)
 
 
-class Node:
+class Input:
+    def __init__(self, from_node: Any, name: Optional[str] = None, loop: Optional[bool] = False):
+        self.from_node = from_node
+        self.name = name
+        self.loop = loop
+
+class BlueprintObject:
+    pass
+
+
+class Node(BlueprintObject):
     def __init__(
         self,
         func: Callable[..., Any],
@@ -37,6 +47,7 @@ class Node:
         to_thread: Optional[bool] = False,
         name: Optional[str] = None,
         secret: Optional[bool] = False,
+        inputs: Optional[Iterable[Union[Input, BlueprintObject]]] = None,
     ):
         if isinstance(func, ObjectAccessor):
             self.accesses = func.__getattr__("*")
@@ -47,7 +58,7 @@ class Node:
         self.to_thread = to_thread
         self.name = name or func.__name__
         self.secret = secret
-        self.inputs = []
+        self.inputs = inputs or []
 
     def __repr__(self):  # pragma: no cover
         return f"<Node {self.name}>"
@@ -55,12 +66,8 @@ class Node:
     def __str__(self):  # pragma: no cover
         return self.name
 
-    def Input(self, from_node: Any, input_name: Optional[str] = None, loop: Optional[bool] = False) -> "Node":
-        self.inputs.append((from_node, input_name, loop))
-        return self
 
-
-class Output:
+class Output(BlueprintObject):
     def __init__(
         self,
         node: Node,
@@ -74,12 +81,12 @@ class Output:
         self.secret = secret
 
 
-class Const:
+class Const(BlueprintObject):
     def __init__(self, value: Optional[Any] = None):
         self.value = value
 
 
-class Secret:
+class Secret(BlueprintObject):
     def __init__(self, value: Optional[Any] = None):
         self.value = value
 
@@ -184,11 +191,14 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
 
         for node in self._nodes.values():
             actual_node = self.bp_to_node_map[node]
-            for from_node, input_name, loop in node.inputs:
-                from_node = resolve_node(self, from_node)
-                if input_name is None:
-                    input_name = from_node.name
-                self.add_edge(from_node, actual_node, input_name, loop)
+            for input_ in node.inputs:
+                if isinstance(input_, Input):
+                    from_node = resolve_node(self, input_.from_node)
+                    input_name = input_.name or from_node.name
+                    self.add_edge(from_node, actual_node, input_name, input_.loop)
+                elif isinstance(input_, BlueprintObject):
+                    from_node = resolve_node(self, input_)
+                    self.add_edge(from_node, actual_node, from_node.name, False)
 
         async_context_mngr = False
         sync_context_mngr = False
@@ -235,7 +245,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             setattr(self.__class__, "__exit__", __exit__)
 
 
-def resolve_node(blueprint: Blueprint, node: Node) -> DeppyNode:
+def resolve_node(blueprint: Blueprint, node: BlueprintObject) -> DeppyNode:
     actual_node = blueprint.bp_to_node_map.get(node)
     if actual_node is None:
         raise ValueError(f"Node '{node}' not found in blueprint")

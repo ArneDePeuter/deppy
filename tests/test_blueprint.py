@@ -1,5 +1,5 @@
 import pytest
-from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Object, resolve_node
+from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Input, Object, resolve_node
 
 
 def add(a, b):
@@ -178,10 +178,24 @@ def test_blueprint_input():
     class BP(Blueprint):
         const = Const()
         b = Secret()
-        add_node = Node(add).Input(const, "a").Input(b)
+        add_node = Node(add, inputs=[Input(const, "a"), Input(b)])
 
     bp = BP(const=1, b=2)
     result = bp.execute()
     assert result.query(bp.add_node) == [3]
     assert result.query(bp.const) == [1]
     assert result.query(bp.b) == [2]
+
+
+def test_blueprint_input_2():
+    def add(a, b):
+        return a + b
+
+    class BP(Blueprint):
+        a = Const()
+        b = Secret()
+        add_node = Node(add, inputs=[a, b])
+
+    bp = BP(a=1, b=2)
+    result = bp.execute()
+    assert result.query(bp.add_node) == [3]
