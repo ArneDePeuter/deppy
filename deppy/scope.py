@@ -60,6 +60,8 @@ class Scope(dict):
     def common_branch(self, other: "Scope") -> bool:
         if self is other:
             return True
+        if self.parent is other.parent:
+            return True
         if self.path.startswith(other.path) or other.path.startswith(self.path):
             return True
         return False

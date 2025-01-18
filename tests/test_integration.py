@@ -1,3 +1,4 @@
+import pytest
 from deppy import Deppy, IgnoreResult
 from itertools import product
 
@@ -138,7 +139,8 @@ async def test_output():
     assert result.query(combine_node) == ["1-a", "2-b"]
     assert result.query(lists_node) == [([1, 2], ["a", "b"])]
 
-    assert len(result.children) == 2
+    assert len(result.children) == 1
+    assert len(result.children[0].children) == 2
 
 
 async def test_node_execution_without_dependencies():
@@ -255,3 +257,28 @@ async def test_constant_ignoreresult_no_children_async():
 
     result = await deppy.execute()
     assert result.query(increment_node) == []
+
+
+def test_common_branch():
+    def list1():
+        return [1, 2, 3]
+
+    def increment(data):
+        return data + 1
+
+    def add(data1, data2):
+        return data1 + data2
+
+    deppy = Deppy()
+    list1_node = deppy.add_node(list1)
+    increment_node1 = deppy.add_node(increment)
+    increment_node2 = deppy.add_node(increment)
+    add_node = deppy.add_node(add)
+
+    deppy.add_edge(list1_node, increment_node1, "data", loop=True)
+    deppy.add_edge(list1_node, increment_node2, "data", loop=True)
+    deppy.add_edge(increment_node1, add_node, "data1", loop=True)
+    deppy.add_edge(increment_node2, add_node, "data2", loop=True)
+
+    with pytest.raises(NotImplementedError):
+        deppy.execute()

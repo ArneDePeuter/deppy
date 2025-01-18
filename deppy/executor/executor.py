@@ -43,8 +43,9 @@ class Executor:
                 scopes.add(scope)
             return scopes
         else:
+            sub = scope.birth()
             for result in results:
-                child = scope.birth()
+                child = sub.birth()
                 child[node] = result
                 if not isinstance(result, IgnoreResult):
                     scopes.add(child)
@@ -86,9 +87,8 @@ class Executor:
         for iter_scopes in all_scopes:
             cur_scope = next(iter(scopes))
             qualifier_scope = next(iter(iter_scopes))
-            assert cur_scope.common_branch(qualifier_scope), (
-                "Scope joining not implemented"
-            )
+            if not cur_scope.common_branch(qualifier_scope):
+                raise NotImplementedError("Scope joining not implemented")
             # assert that we always take the lowest family member
             if len(cur_scope.path) < len(qualifier_scope.path):  # pragma: no cover
                 scopes = iter_scopes
