@@ -199,3 +199,17 @@ def test_blueprint_input_2():
     bp = BP(a=1, b=2)
     result = bp.execute()
     assert result.query(bp.add_node) == [3]
+
+
+def test_blueprint_invalid_input():
+    def add(a, b):
+        return a + b
+
+    class BP(Blueprint):
+        a = Const()
+        b = Secret()
+        add_node = Node(add, inputs=[1, b])
+
+    with pytest.raises(ValueError, match="Invalid input 1 for node 'add'. It must be Input or BlueprintObject"):
+        BP(a=1, b=2)
+

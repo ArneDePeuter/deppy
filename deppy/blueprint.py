@@ -24,6 +24,9 @@ class ObjectAccessor:
         self.curr_access.append(item)
         return self
 
+    def reset(self):
+        self.curr_access = []
+
 
 def Object(t: Type[T]) -> T:
     return ObjectAccessor(t)
@@ -47,7 +50,7 @@ class Node(BlueprintObject):
         to_thread: Optional[bool] = False,
         name: Optional[str] = None,
         secret: Optional[bool] = False,
-        inputs: Optional[Iterable[Union[Input, BlueprintObject]]] = None,
+        inputs: Optional[Iterable[Any]] = None,
     ):
         if isinstance(func, ObjectAccessor):
             self.accesses = func.__getattr__("*")
@@ -59,6 +62,9 @@ class Node(BlueprintObject):
         self.name = name or func.__name__
         self.secret = secret
         self.inputs = inputs or []
+        if isinstance(func, ObjectAccessor):
+            # reset because we called __name__
+            func.reset()
 
     def __repr__(self):  # pragma: no cover
         return f"<Node {self.name}>"
@@ -199,6 +205,8 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
                 elif isinstance(input_, BlueprintObject):
                     from_node = resolve_node(self, input_)
                     self.add_edge(from_node, actual_node, from_node.name, False)
+                else:
+                    raise ValueError(f"Invalid input {input_} for node '{node}'. It must be Input or BlueprintObject")
 
         async_context_mngr = False
         sync_context_mngr = False
