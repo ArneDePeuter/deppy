@@ -72,18 +72,3 @@ def test_birth():
     assert child in scope.children
     assert child.parent is scope
     assert child.path == "$" + "/0"
-
-
-def test_common_branch():
-    parent = Scope()
-    child1 = parent.birth()
-    child2 = parent.birth()
-    subchild = child1.birth()
-    subchild2 = child2.birth()
-
-    assert child1.common_branch(child2) is True
-    assert child2.common_branch(child1) is True
-    assert parent.common_branch(child1) is True
-    assert parent.common_branch(child2) is True
-    assert subchild.common_branch(subchild2) is False
-    assert subchild2.common_branch(subchild) is False

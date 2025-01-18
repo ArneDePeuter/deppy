@@ -63,4 +63,10 @@ For detailed usage and advanced features, dive into our [comprehensive documenta
 
 ---
 
+📂 Examples
+
+The [Examples](./examples) folder contains practical demonstrations to help you get started quickly. Each example showcases how to use Deppy effectively in real-world scenarios. 🛠️
+
+---
+
 ⚡ Transform your workflow management with **Deppy** today!
