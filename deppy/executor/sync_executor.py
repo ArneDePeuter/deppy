@@ -25,6 +25,8 @@ class SyncExecutor(Executor):
 
     def execute_node_sync(self, node: Node) -> None:
         scopes = self.get_call_scopes(node)
+        if len(scopes) == 0:
+            return
         new_scopes = [
             self.execute_node_with_scope_sync(node, scope) for scope in scopes
         ]

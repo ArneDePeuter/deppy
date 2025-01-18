@@ -219,3 +219,39 @@ async def test_constant():
 
     result = await deppy.execute()
     assert result.query(add_node) == [2, 4, 6]
+
+
+def test_constant_ignoreresult_no_children():
+    def get_item():
+        return IgnoreResult()
+
+    def increment(data):
+        return data + 1
+
+    deppy = Deppy()
+
+    item = deppy.add_node(get_item)
+    increment_node = deppy.add_node(increment)
+
+    deppy.add_edge(item, increment_node, "data")
+
+    result = deppy.execute()
+    assert result.query(increment_node) == []
+
+
+async def test_constant_ignoreresult_no_children_async():
+    def get_item():
+        return IgnoreResult()
+
+    async def increment(data):
+        return data + 1
+
+    deppy = Deppy()
+
+    item = deppy.add_node(get_item)
+    increment_node = deppy.add_node(increment)
+
+    deppy.add_edge(item, increment_node, "data")
+
+    result = await deppy.execute()
+    assert result.query(increment_node) == []

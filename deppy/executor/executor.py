@@ -73,11 +73,15 @@ class Executor:
         self.scope_map = {}
 
     def get_call_scopes(self, node: Node) -> Set[Scope]:
-        all_scopes = [
-            self.scope_map[pred] for pred in self.flow_graph.predecessors(node)
-        ]
-        if not all_scopes:
+        preds = list(self.flow_graph.predecessors(node))
+        # no predecessors so we are at the root
+        if not preds:
             return {self.root}
+        all_scopes = [self.scope_map[pred] for pred in preds]
+        # if any of the predecessors has no produced scopes, it means that IgnoreResult was returned
+        # no viable call scopes
+        if any(len(scope) == 0 for scope in all_scopes):
+            return set()
         scopes = all_scopes.pop()
         for iter_scopes in all_scopes:
             cur_scope = next(iter(scopes))

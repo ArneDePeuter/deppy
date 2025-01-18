@@ -37,6 +37,8 @@ class AsyncExecutor(Executor):
 
     async def execute_node_async(self, node: Node) -> None:
         scopes = self.get_call_scopes(node)
+        if len(scopes) == 0:
+            return
         new_scopes = await asyncio.gather(
             *[self.execute_node_with_scope_async(node, scope) for scope in scopes]
         )
