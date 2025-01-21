@@ -13,11 +13,28 @@ from deppy.node import Node as DeppyNode
 BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
 
 
-def create_spec(
-    source_name: str,
-    configs: Dict[str, type],
-    objects: Dict[str, Type[BaseConfiguration]],
+def _create_spec(
+        source_name: str,
+        configs: Dict[str, type],
+        objects: Dict[str, Type[BaseConfiguration]],
 ) -> Type[BaseConfiguration]:
+    """
+    Dynamically creates a configuration specification for a source.
+
+    Parameters
+    ----------
+    source_name : str
+        The name of the source.
+    configs : Dict[str, type]
+        Dictionary of configuration names and their types.
+    objects : Dict[str, Type[BaseConfiguration]]
+        Dictionary of object names and their configuration specifications.
+
+    Returns
+    -------
+    Type[BaseConfiguration]
+        A dynamically created configuration class.
+    """
     annotations: Dict[str, Any] = {}
     defaults: Dict[str, Any] = {}
     for config, type_ in configs.items():
@@ -32,7 +49,20 @@ def create_spec(
     return configspec(new_class)  # type: ignore[return-value]
 
 
-def get_object_params(obj: Any) -> Dict[str, type]:
+def _get_object_params(obj: Any) -> Dict[str, type]:
+    """
+    Extracts the parameters and their types from an object's constructor.
+
+    Parameters
+    ----------
+    obj : Any
+        The object whose parameters are to be extracted.
+
+    Returns
+    -------
+    Dict[str, type]
+        A dictionary mapping parameter names to their types.
+    """
     d = inspect.signature(obj.__init__).parameters
 
     def get_annotation(param):
@@ -41,21 +71,51 @@ def get_object_params(obj: Any) -> Dict[str, type]:
     return {k: get_annotation(v) for k, v in d.items() if k != "self"}
 
 
-def create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
-    configs = get_object_params(obj)
-    return create_spec(obj_name, configs, objects={})
+def _create_object_spec(obj_name: str, obj: object) -> Type[BaseConfiguration]:
+    """
+    Creates a configuration specification for a given object.
+
+    Parameters
+    ----------
+    obj_name : str
+        The name of the object.
+    obj : object
+        The object for which the specification is created.
+
+    Returns
+    -------
+    Type[BaseConfiguration]
+        A dynamically created configuration class for the object.
+    """
+    configs = _get_object_params(obj)
+    return _create_spec(obj_name, configs, objects={})
 
 
-def create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
+def _create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
+    """
+    Creates an extract function for the DLT source based on the given blueprint and target nodes.
+
+    Parameters
+    ----------
+    deppy : Blueprint
+        The blueprint to execute.
+    target_nodes : Iterable[Node]
+        Nodes to extract data from.
+
+    Returns
+    -------
+    Any
+        An asynchronous or synchronous extraction function.
+    """
     async_func = inspect.iscoroutinefunction(deppy.execute)
     async_context = hasattr(deppy, "__aenter__") and hasattr(deppy, "__aexit__")
     sync_context = hasattr(deppy, "__enter__") and hasattr(deppy, "__exit__")
 
     async def extract_async(
-        deppy_=deppy,
-        target_nodes_=target_nodes,
-        async_context_=async_context,
-        sync_context_=sync_context,
+            deppy_=deppy,
+            target_nodes_=target_nodes,
+            async_context_=async_context,
+            sync_context_=sync_context,
     ):
         if async_context_:
             async with deppy_:
@@ -70,7 +130,7 @@ def create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
             yield await deppy_.execute(*target_nodes_)
 
     def extract_sync(
-        deppy_=deppy, target_nodes_=target_nodes, sync_context_=sync_context
+            deppy_=deppy, target_nodes_=target_nodes, sync_context_=sync_context
     ):
         if sync_context_:
             with deppy_:
@@ -82,11 +142,30 @@ def create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
 
 
 def blueprint_to_source(
-    blueprint: Type[BlueprintSubclass],
-    target_nodes: Optional[Iterable[Node]] = None,
-    exclude_for_storing: Optional[Iterable[Node]] = None,
-    resource_kwargs: Optional[Dict[Node, Dict[str, Any]]] = None,
+        blueprint: Type[BlueprintSubclass],
+        target_nodes: Optional[Iterable[Node]] = None,
+        exclude_for_storing: Optional[Iterable[Node]] = None,
+        resource_kwargs: Optional[Dict[Node, Dict[str, Any]]] = None,
 ) -> SourceFactory:
+    """
+    Converts a Deppy blueprint into a DLT source factory.
+
+    Parameters
+    ----------
+    blueprint : Type[BlueprintSubclass]
+        The blueprint class to convert.
+    target_nodes : Optional[Iterable[Node]], optional
+        Nodes to include in the source (default is None).
+    exclude_for_storing : Optional[Iterable[Node]], optional
+        Nodes to exclude from storage (default is None).
+    resource_kwargs : Optional[Dict[Node, Dict[str, Any]]], optional
+        Additional resource configurations for specific nodes (default is None).
+
+    Returns
+    -------
+    SourceFactory
+        A DLT source factory for the given blueprint.
+    """
     name = blueprint.__name__.lower()
     target_nodes = target_nodes or []
     resource_kwargs = resource_kwargs or {}
@@ -95,11 +174,11 @@ def blueprint_to_source(
     configs = copy.deepcopy(blueprint._config_annotations)
     configs.update(blueprint._secret_annotations)
     objects = {
-        object_name: create_object_spec(object_name, object_accesor.type)
+        object_name: _create_object_spec(object_name, object_accesor.type)
         for object_name, object_accesor in blueprint._objects.items()
     }
 
-    spec = create_spec(name, configs, objects)
+    spec = _create_spec(name, configs, objects)
 
     @dlt.source(name=f"{name}_source")
     def source():
@@ -109,7 +188,7 @@ def blueprint_to_source(
             {
                 obj_name: {
                     param_name: getattr(getattr(resolved_spec, obj_name), param_name)
-                    for param_name in get_object_params(obj)
+                    for param_name in _get_object_params(obj)
                 }
                 for obj_name, obj in objects.items()
             }
@@ -124,7 +203,7 @@ def blueprint_to_source(
             deppy.resolve_node(n): kwargs for n, kwargs in resource_kwargs.items()
         }
 
-        extract_func = create_extract_func(deppy, actual_target_nodes)
+        extract_func = _create_extract_func(deppy, actual_target_nodes)
         extract = dlt.resource(selected=False, name=f"{name}_extract")(extract_func)
 
         resources = [extract]
