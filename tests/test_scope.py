@@ -55,13 +55,13 @@ def test_dump():
     child["child_key"] = "child_value"
 
     # Without ignoring secrets
-    dumped = scope.dump(ignore_secret=False)
+    dumped = scope.dump(mask_secrets=True)
     assert dumped["key"] == "value"
     assert dumped["children"][0]["child_key"] == "child_value"
     assert dumped[str(node)] == "***"
 
     # Ignoring secrets
-    dumped = scope.dump(ignore_secret=True)
+    dumped = scope.dump(mask_secrets=False)
     assert dumped[str(node)] == "sensitive_value"
 
 

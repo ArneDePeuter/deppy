@@ -1,21 +1,61 @@
 from typing import Optional, Dict, Any, List
+import pydot
+import json
 
 from .ignore_result import IgnoreResult
 from .node import Node
 
-import json
-
 
 class Scope(dict):
+    """
+    A class representing a hierarchical scope structure.
+
+    Attributes
+    ----------
+    not_found : object
+        Sentinel object used to represent a missing key.
+    parent : Optional[dict]
+        Optional parent scope to inherit from.
+    children : list[Scope]
+        List of child scopes.
+    path : str
+        Path identifying the current scope.
+    """
+
     not_found = object()
 
-    def __init__(self, parent: Optional[dict] = None, path: str = "$") -> None:
+    def __init__(self, parent: Optional[dict] = None, path: Optional[str] = "$") -> None:
+        """
+        Constructs a new Scope object.
+
+        Parameters
+        ----------
+        parent : Optional[dict], optional
+            The parent scope to inherit from (default is None).
+        path : Optional[str], optional
+            Path identifying the current scope (default is "$" for root).
+        """
         self.parent = parent
-        self.children: list["Scope"] = []
         self.path = path
+        self.children: list["Scope"] = []
         super().__init__()
 
     def query(self, key, ignored_results: Optional[bool] = None) -> List[Any]:
+        """
+        Queries the scope and its children for a specified key.
+
+        Parameters
+        ----------
+        key : any
+            The key to search for.
+        ignored_results : Optional[bool], optional
+            Flag to filter results based on their type (default is None).
+
+        Returns
+        -------
+        List[Any]
+            A list of matching values from the current scope and its children.
+        """
         values = []
         val = self.get(key, self.not_found)
         if val is not self.not_found and (
@@ -30,6 +70,24 @@ class Scope(dict):
         return values
 
     def __getitem__(self, item) -> Any:
+        """
+        Retrieves the value associated with a key, searching parent scopes if necessary.
+
+        Parameters
+        ----------
+        item : any
+            The key to retrieve.
+
+        Returns
+        -------
+        Any
+            The value associated with the key.
+
+        Raises
+        ------
+        KeyError
+            If the key is not found in the current or parent scopes.
+        """
         val = super().get(item, self.not_found)
         if val is not self.not_found:
             return val
@@ -37,41 +95,88 @@ class Scope(dict):
             return self.parent[item]
         raise KeyError(item)
 
-    def dump(self, ignore_secret: Optional[bool] = False) -> Dict[str, Any]:
+    def dump(self, mask_secrets: Optional[bool] = True) -> Dict[str, Any]:
+        """
+        Dumps the scope's content into a dictionary, optionally masking secret values.
+
+        Parameters
+        ----------
+        mask_secrets : Optional[bool], optional
+            Flag to determine whether secret values are masked (default is True).
+
+        Returns
+        -------
+        Dict[str, Any]
+            A dictionary representation of the scope.
+        """
         return {
             str(key): "***"
-            if isinstance(key, Node) and key.secret and not ignore_secret
+            if isinstance(key, Node) and key.secret and mask_secrets
             else value
             for key, value in self.items()
         } | (
-            {"children": [child.dump(ignore_secret) for child in self.children]}
+            {"children": [child.dump(mask_secrets) for child in self.children]}
             if self.children
             else {}
         )
 
     def __str__(self) -> str:  # pragma: no cover
+        """
+        Converts the scope's content to a JSON-formatted string.
+
+        Returns
+        -------
+        str
+            A JSON string representation of the scope.
+        """
         return json.dumps(self.dump(), indent=2)
 
     def birth(self) -> "Scope":
-        child = Scope(self, path=f"{self.path}/{len(self.children)}")
+        """
+        Creates a new child scope and attaches it to the current scope.
+
+        Returns
+        -------
+        Scope
+            The newly created child scope.
+        """
+        child = Scope(self, f"{self.path}/{len(self.children)}")
         self.children.append(child)
         return child
 
     def __hash__(self) -> int:
+        """
+        Computes the unique hash value for the scope instance.
+
+        Returns
+        -------
+        int
+            An integer hash value.
+        """
         return id(self)
 
     def dot(
         self,
         filename: str,
-        ignore_secret: Optional[bool] = False,
+        mask_secrets: Optional[bool] = True,
         max_label_size: int = 10,
     ) -> None:  # pragma: no cover
-        import pydot
+        """
+        Generates a DOT graph representation of the scope hierarchy.
 
+        Parameters
+        ----------
+        filename : str
+            The output filename for the DOT file.
+        mask_secrets : Optional[bool], optional
+            Flag to determine whether secret values are masked (default is True).
+        max_label_size : int, optional
+            Maximum character length for node labels (default is 10).
+        """
         graph = pydot.Dot(graph_type="digraph")
 
         def add_node(scope):
-            data = scope.dump(ignore_secret)
+            data = scope.dump(mask_secrets)
             truncated = {
                 k: (str(v)[:max_label_size] + "...")
                 if len(str(v)) > max_label_size
