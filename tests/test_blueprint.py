@@ -1,5 +1,5 @@
 import pytest
-from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Input, Object, resolve_node
+from deppy.blueprint import Blueprint, Node, Const, Secret, Output, Input, Object
 
 
 def add(a, b):
@@ -61,11 +61,11 @@ def test_blueprint_invalid_object_input():
 def test_blueprint_resolve_node():
     deppy = BlueprintTest(obj=Obj(3), const=3, secret=4)
 
-    resolved_node = resolve_node(deppy, BlueprintTest.add_node1)
+    resolved_node = deppy.resolve_node(BlueprintTest.add_node1)
     assert resolved_node is deppy.add_node1
 
     with pytest.raises(ValueError, match="Node 'add' not found in blueprint"):
-        resolve_node(deppy, Node(add))
+        deppy.resolve_node(Node(add))
 
 
 async def test_blueprint_context_management():
@@ -154,7 +154,7 @@ def test_blueprint_edges_validation():
         edges = [(const, add_node)]  # Missing the key argument for the edge
 
     with pytest.raises(
-        AssertionError, match="Edges must be tuples with min length of 3"
+        AssertionError, match="Edges must be tuples with at least 3 elements"
     ):
         InvalidBlueprint(const=1)
 
@@ -210,6 +210,6 @@ def test_blueprint_invalid_input():
         b = Secret()
         add_node = Node(add, inputs=[1, b])
 
-    with pytest.raises(ValueError, match="Invalid input 1 for node 'add'. It must be Input or BlueprintObject"):
+    with pytest.raises(ValueError, match="Invalid input 1 for node 'add_node'. Must be Input or BlueprintObject"):
         BP(a=1, b=2)
 

@@ -7,7 +7,7 @@ from dlt.common.configuration.specs import BaseConfiguration, configspec
 from dlt.extract.source import DltResource, SourceFactory
 from dlt.common.configuration.resolve import resolve_configuration
 
-from deppy.blueprint import Node, Blueprint, resolve_node
+from deppy.blueprint import Node, Blueprint
 from deppy.node import Node as DeppyNode
 
 BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
@@ -116,12 +116,12 @@ def blueprint_to_source(
         )
         deppy: Blueprint = blueprint(**init_kwargs)
 
-        actual_target_nodes = [resolve_node(deppy, n) for n in target_nodes]
+        actual_target_nodes = [deppy.resolve_node(n) for n in target_nodes]
         actual_exclude_for_storing = [
-            resolve_node(deppy, n) for n in exclude_for_storing
+            deppy.resolve_node(n) for n in exclude_for_storing
         ]
         actual_resource_kwargs = {
-            resolve_node(deppy, n): kwargs for n, kwargs in resource_kwargs.items()
+            deppy.resolve_node(n): kwargs for n, kwargs in resource_kwargs.items()
         }
 
         extract_func = create_extract_func(deppy, actual_target_nodes)
