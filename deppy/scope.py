@@ -24,7 +24,9 @@ class Scope(dict):
 
     not_found = object()
 
-    def __init__(self, parent: Optional[dict] = None, path: Optional[str] = "$") -> None:
+    def __init__(
+        self, parent: Optional[dict] = None, path: Optional[str] = "$"
+    ) -> None:
         """
         Constructs a new Scope object.
 

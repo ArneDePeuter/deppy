@@ -1,13 +1,22 @@
 from typing import Union
 
 from .meta import BlueprintMeta
-from .components import ObjectAccessor, Node, Const, Secret, Output, BlueprintObject, Input
+from .components import (
+    ObjectAccessor,
+    Node,
+    Const,
+    Secret,
+    Output,
+    BlueprintObject,
+    Input,
+)
 from ..node import Node as DeppyNode
 from ..deppy import Deppy
 
 
 class Blueprint(Deppy, metaclass=BlueprintMeta):
     """Blueprint definition."""
+
     _objects: dict[str, ObjectAccessor]
     _nodes: dict[str, Node]
     _outputs: dict[str, Output]
@@ -111,7 +120,9 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             for input_ in node.inputs:
                 self._add_edge_for_input(input_, actual_node)
 
-    def _add_edge_for_input(self, input_: Union[Input, BlueprintObject], actual_node: DeppyNode):
+    def _add_edge_for_input(
+        self, input_: Union[Input, BlueprintObject], actual_node: DeppyNode
+    ):
         """Add edges based on the node inputs."""
         if isinstance(input_, Input):
             from_node = self.resolve_node(input_.from_node)
@@ -121,18 +132,23 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             from_node = self.resolve_node(input_)
             self.add_edge(from_node, actual_node, from_node.name, False)
         else:
-            raise ValueError(f"Invalid input {input_} for node '{actual_node}'. Must be Input or BlueprintObject")
+            raise ValueError(
+                f"Invalid input {input_} for node '{actual_node}'. Must be Input or BlueprintObject"
+            )
 
     def _setup_context_managers(self, object_map: dict):
         """Set up context manager methods (__enter__, __exit__, __aenter__, __aexit__)."""
         async_context_manager = any(
-            hasattr(obj, "__aenter__") and hasattr(obj, "__aexit__") for obj in object_map.values()
+            hasattr(obj, "__aenter__") and hasattr(obj, "__aexit__")
+            for obj in object_map.values()
         )
         sync_context_manager = any(
-            hasattr(obj, "__enter__") and hasattr(obj, "__exit__") for obj in object_map.values()
+            hasattr(obj, "__enter__") and hasattr(obj, "__exit__")
+            for obj in object_map.values()
         )
 
         if async_context_manager:
+
             async def __aenter__(self):
                 for obj in object_map.values():
                     if hasattr(obj, "__aenter__"):
@@ -152,6 +168,7 @@ class Blueprint(Deppy, metaclass=BlueprintMeta):
             setattr(self.__class__, "__aexit__", __aexit__)
 
         elif sync_context_manager:
+
             def __enter__(self):
                 for obj in object_map.values():
                     if hasattr(obj, "__enter__"):

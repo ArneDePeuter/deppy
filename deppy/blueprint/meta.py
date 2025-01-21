@@ -24,19 +24,21 @@ class BlueprintMeta(type):
             elif attr_name == "edges" and isinstance(attr_value, Iterable):
                 edges = list(attr_value)
 
-        dct.update({
-            "_nodes": nodes,
-            "_outputs": outputs,
-            "_consts": consts,
-            "_secrets": secrets,
-            "_objects": objects,
-            "_edges": edges,
-            "_config_annotations": {
-                name: dct.get("__annotations__", {}).get(name) for name in consts
-            },
-            "_secret_annotations": {
-                name: dct.get("__annotations__", {}).get(name) for name in secrets
-            },
-        })
+        dct.update(
+            {
+                "_nodes": nodes,
+                "_outputs": outputs,
+                "_consts": consts,
+                "_secrets": secrets,
+                "_objects": objects,
+                "_edges": edges,
+                "_config_annotations": {
+                    name: dct.get("__annotations__", {}).get(name) for name in consts
+                },
+                "_secret_annotations": {
+                    name: dct.get("__annotations__", {}).get(name) for name in secrets
+                },
+            }
+        )
 
         return super().__new__(cls, name, bases, dct)

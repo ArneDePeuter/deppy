@@ -14,9 +14,9 @@ BlueprintSubclass = TypeVar("BlueprintSubclass", bound=Blueprint)
 
 
 def _create_spec(
-        source_name: str,
-        configs: Dict[str, type],
-        objects: Dict[str, Type[BaseConfiguration]],
+    source_name: str,
+    configs: Dict[str, type],
+    objects: Dict[str, Type[BaseConfiguration]],
 ) -> Type[BaseConfiguration]:
     """
     Dynamically creates a configuration specification for a source.
@@ -112,10 +112,10 @@ def _create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
     sync_context = hasattr(deppy, "__enter__") and hasattr(deppy, "__exit__")
 
     async def extract_async(
-            deppy_=deppy,
-            target_nodes_=target_nodes,
-            async_context_=async_context,
-            sync_context_=sync_context,
+        deppy_=deppy,
+        target_nodes_=target_nodes,
+        async_context_=async_context,
+        sync_context_=sync_context,
     ):
         if async_context_:
             async with deppy_:
@@ -130,7 +130,7 @@ def _create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
             yield await deppy_.execute(*target_nodes_)
 
     def extract_sync(
-            deppy_=deppy, target_nodes_=target_nodes, sync_context_=sync_context
+        deppy_=deppy, target_nodes_=target_nodes, sync_context_=sync_context
     ):
         if sync_context_:
             with deppy_:
@@ -142,10 +142,10 @@ def _create_extract_func(deppy: Blueprint, target_nodes: Iterable[Node]) -> Any:
 
 
 def blueprint_to_source(
-        blueprint: Type[BlueprintSubclass],
-        target_nodes: Optional[Iterable[Node]] = None,
-        exclude_for_storing: Optional[Iterable[Node]] = None,
-        resource_kwargs: Optional[Dict[Node, Dict[str, Any]]] = None,
+    blueprint: Type[BlueprintSubclass],
+    target_nodes: Optional[Iterable[Node]] = None,
+    exclude_for_storing: Optional[Iterable[Node]] = None,
+    resource_kwargs: Optional[Dict[Node, Dict[str, Any]]] = None,
 ) -> SourceFactory:
     """
     Converts a Deppy blueprint into a DLT source factory.

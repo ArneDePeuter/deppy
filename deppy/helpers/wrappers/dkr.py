@@ -282,6 +282,7 @@ class Dkr:
         Callable
             The wrapped function.
         """
+
         @wraps(func)
         async def async_wrapper(**kwargs):
             resolved_kwargs = self.resolve(kwargs)

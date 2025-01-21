@@ -87,6 +87,7 @@ class AsyncClient(httpx.AsyncClient):
         Callable[P, Union[IgnoreResult, Any]]
             The wrapped function, returning `IgnoreResult` for ignored status codes.
         """
+
         @wraps(function)
         async def wrapper(
             *args: P.args, **kwargs: P.kwargs

@@ -1,6 +1,4 @@
-from typing import (
-    Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
-)
+from typing import Any, Optional, Iterable, Callable, TypeVar, Type, ParamSpec
 from ..node import LoopStrategy, product
 
 
@@ -39,7 +37,9 @@ class BlueprintObject:
 class Input:
     """Represents an input for a Node."""
 
-    def __init__(self, from_node: BlueprintObject, name: Optional[str] = None, loop: bool = False):
+    def __init__(
+        self, from_node: BlueprintObject, name: Optional[str] = None, loop: bool = False
+    ):
         self.from_node = from_node
         self.name = name
         self.loop = loop

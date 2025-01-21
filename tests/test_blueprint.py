@@ -210,6 +210,8 @@ def test_blueprint_invalid_input():
         b = Secret()
         add_node = Node(add, inputs=[1, b])
 
-    with pytest.raises(ValueError, match="Invalid input 1 for node 'add_node'. Must be Input or BlueprintObject"):
+    with pytest.raises(
+        ValueError,
+        match="Invalid input 1 for node 'add_node'. Must be Input or BlueprintObject",
+    ):
         BP(a=1, b=2)
-

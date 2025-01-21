@@ -56,7 +56,13 @@ class GraphBuilder:
         secret : Optional[bool], optional
             Indicates whether the node is sensitive and should be masked in outputs (default is False).
         """
-        node = Node(func=func, loop_strategy=loop_strategy, to_thread=to_thread, name=name, secret=secret)
+        node = Node(
+            func=func,
+            loop_strategy=loop_strategy,
+            to_thread=to_thread,
+            name=name,
+            secret=secret,
+        )
         self.graph.add_node(node)
         return node
 
