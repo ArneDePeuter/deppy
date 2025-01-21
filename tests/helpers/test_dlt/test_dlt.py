@@ -507,8 +507,12 @@ def test_resource_kwargs():
         items = Node(get_items)
         item = Output(items, loop=True)
 
-    source = blueprint_to_source(MyTest, resource_kwargs={MyTest.item: {"primary_key": "id"}})
-    pipeline = dlt.pipeline(pipeline_name="testpipeline", destination="duckdb", full_refresh=True)
+    source = blueprint_to_source(
+        MyTest, resource_kwargs={MyTest.item: {"primary_key": "id"}}
+    )
+    pipeline = dlt.pipeline(
+        pipeline_name="testpipeline", destination="duckdb", full_refresh=True
+    )
     pipeline.run(source())
 
     tables = pipeline.default_schema.data_tables()
@@ -516,7 +520,9 @@ def test_resource_kwargs():
     assert tables[0]["columns"]["id"]["primary_key"]
 
     source = blueprint_to_source(MyTest, resource_kwargs={})
-    pipeline = dlt.pipeline(pipeline_name="testpipeline", destination="duckdb", full_refresh=True)
+    pipeline = dlt.pipeline(
+        pipeline_name="testpipeline", destination="duckdb", full_refresh=True
+    )
     pipeline.run(source())
 
     tables = pipeline.default_schema.data_tables()

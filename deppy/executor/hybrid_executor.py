@@ -8,12 +8,32 @@ from .async_executor import AsyncExecutor
 
 
 class HybridExecutor(AsyncExecutor, SyncExecutor):
+    """
+    A hybrid executor for executing dependency graphs with both synchronous and asynchronous nodes.
+
+    Attributes
+    ----------
+    None (inherits all attributes from AsyncExecutor and SyncExecutor).
+    """
+
     def __init__(
         self,
         deppy,
         max_thread_workers: Optional[int] = None,
         max_concurrent_tasks: Optional[int] = None,
     ) -> None:
+        """
+        Constructs a HybridExecutor instance.
+
+        Parameters
+        ----------
+        deppy : Any
+            The main dependency manager instance.
+        max_thread_workers : Optional[int], optional
+            Maximum number of threads for synchronous execution (default is None, meaning unlimited).
+        max_concurrent_tasks : Optional[int], optional
+            Maximum number of concurrent asynchronous tasks (default is None, meaning unlimited).
+        """
         super().__init__(
             deppy,
             max_thread_workers=max_thread_workers,
@@ -21,6 +41,19 @@ class HybridExecutor(AsyncExecutor, SyncExecutor):
         )
 
     async def execute_hybrid(self, *target_nodes: Sequence[Node]) -> Scope:
+        """
+        Executes the dependency graph, handling synchronous and asynchronous nodes appropriately.
+
+        Parameters
+        ----------
+        target_nodes : Sequence[Node]
+            The target nodes to execute.
+
+        Returns
+        -------
+        Scope
+            The root scope containing the execution results.
+        """
         self.setup(*target_nodes)
 
         for tasks in self.batched_topological_order():

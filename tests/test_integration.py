@@ -1,4 +1,3 @@
-import pytest
 from deppy import Deppy, IgnoreResult
 from itertools import product
 
