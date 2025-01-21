@@ -7,7 +7,30 @@ from .executor import HybridExecutor
 
 
 class Deppy:
+    """
+    A class to manage the creation and execution of dependency graphs.
+
+    Attributes
+    ----------
+    _name : Optional[str]
+        The name of the Deppy instance.
+    graph_builder : GraphBuilder
+        Instance of GraphBuilder for managing the dependency graph.
+    graph : MultiDiGraph
+        The underlying graph structure managed by the GraphBuilder.
+    executor : HybridExecutor
+        Instance of HybridExecutor for executing the dependency graph.
+    """
+
     def __init__(self, name: Optional[str] = "Deppy") -> None:
+        """
+        Constructs a Deppy instance with a dependency graph and executor.
+
+        Parameters
+        ----------
+        name : Optional[str], optional
+            The name of the Deppy instance (default is "Deppy").
+        """
         self._name = name
 
         self.graph_builder = GraphBuilder()
@@ -21,12 +44,33 @@ class Deppy:
         self.executor = HybridExecutor(self)
 
     def get_node_by_name(self, name: str) -> Optional[Node]:
+        """
+        Retrieves a node from the graph by its name.
+
+        Parameters
+        ----------
+        name : str
+            The name of the node to retrieve.
+
+        Returns
+        -------
+        Optional[Node]
+            The node with the specified name, or None if not found.
+        """
         for node in self.graph.nodes:
             if node.name == name:
                 return node
         return None
 
     def dot(self, filename: str) -> None:  # pragma: no cover
+        """
+        Exports the dependency graph to a DOT file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to write the DOT representation to.
+        """
         from networkx.drawing.nx_pydot import write_dot
 
         dot_graph = self.graph.copy()
@@ -43,11 +87,30 @@ class Deppy:
         write_dot(dot_graph, filename)
 
     def execute_is_async(self) -> bool:
+        """
+        Checks whether the execute method is asynchronous.
+
+        Returns
+        -------
+        bool
+            True if the execute method is asynchronous, False otherwise.
+        """
         return asyncio.iscoroutinefunction(self.execute)
 
     @property
     def execute(self):
+        """
+        Determines the appropriate execution method for the graph.
+
+        Returns
+        -------
+        Callable
+            The synchronous or asynchronous execution method, depending on the graph's nodes.
+        """
         has_async_nodes = any(node.is_async for node in self.graph.nodes)
         if not has_async_nodes:
             return self.executor.execute_sync
+        all_async_nodes = all(node.is_async for node in self.graph.nodes)
+        if all_async_nodes:
+            return self.executor.execute_async
         return self.executor.execute_hybrid
