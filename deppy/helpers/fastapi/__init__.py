@@ -1,10 +1,12 @@
-from .websocket import create_websocket_endpoint
 from fastapi import FastAPI
 from deppy.blueprint import Blueprint
 from typing import Type
 
+from .websocket import create_websocket_endpoint
+from .endpoints import create_endpoints
 
-def create_api(blueprint: Type[Blueprint]) -> FastAPI:
+
+def create_app(blueprint: Type[Blueprint]) -> FastAPI:
     """
     Creates a FastAPI application for given blueprint.
 
@@ -18,6 +20,7 @@ def create_api(blueprint: Type[Blueprint]) -> FastAPI:
     FastAPI
         The FastAPI application instance.
     """
-    app = FastAPI()
+    app = FastAPI(title=blueprint.__name__)
     create_websocket_endpoint(app, blueprint)
+    create_endpoints(app, blueprint)
     return app
