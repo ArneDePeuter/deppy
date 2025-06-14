@@ -25,7 +25,7 @@ class ObjectAccessor:
         return path
 
 
-def Object(t: Type[T]) -> ObjectAccessor:
+def Object(t: Type[T]) -> T:
     """Factory to create an ObjectAccessor for the given type."""
     return ObjectAccessor(t)
 
