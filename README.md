@@ -59,13 +59,13 @@ print(result.query(say_hello_node))  # ['Hello world!', 'Hello everyone!', 'Hell
 ```
 
 ### 📖 Documentation
-For detailed usage and advanced features, dive into our [comprehensive documentation](./docs).
+For detailed usage and advanced features, dive into our [comprehensive documentation](https://github.com/ArneDePeuter/deppy/tree/master/docs).
 
 ---
 
 📂 Examples
 
-The [Examples](./examples) folder contains practical demonstrations to help you get started quickly. Each example showcases how to use Deppy effectively in real-world scenarios. 🛠️
+The [Examples](https://github.com/ArneDePeuter/deppy/tree/master/examples) folder contains practical demonstrations to help you get started quickly. Each example showcases how to use Deppy effectively in real-world scenarios. 🛠️
 
 ---
 
