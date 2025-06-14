@@ -15,7 +15,8 @@ class ObjectAccessor:
         self.name: Optional[str] = None
 
     def __getattr__(self, item: str) -> "ObjectAccessor":
-        self.curr_access.append(item)
+        if item != "__name__":
+            self.curr_access.append(item)
         return self
 
     def __prune__(self) -> list[str]:
